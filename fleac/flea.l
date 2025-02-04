@@ -7,8 +7,6 @@
 #include <cstdlib>
 #include <string>
 
-// 因为 Flex 会用到 Bison 中关于 token 的定义
-// 所以需要 include Bison 生成的头文件
 #include "flea_ast.hpp"
 #include "flea.tab.hpp"
 
@@ -28,8 +26,8 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 %%
 
-{WhiteSpace}    { /* 忽略, 不做任何操作 */ }
-{LineComment}   { /* 忽略, 不做任何操作 */ }
+{WhiteSpace}    { /* ignore */ }
+{LineComment}   { /* ignore */ }
 
 "int"           { return INT; }
 "return"        { return RETURN; }

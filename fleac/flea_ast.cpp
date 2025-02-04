@@ -57,20 +57,8 @@ std::ostream &UnaryExpAST::print(std::ostream &out, size_t indent) const {
   return exp->print(out) << " }";
 }
 
-std::ostream &MulExpAST::print(std::ostream &out, size_t indent) const {
-  print_indent(out, indent) << "MulExp { ";
-  if (!op)
-    out << "null, ";
-  else
-    out << op << ", ";
-  out << *lhs;
-  if (rhs)
-    out << ", " << *rhs;
-  return out << " }";
-}
-
-std::ostream &AddExpAST::print(std::ostream &out, size_t indent) const {
-  print_indent(out, indent) << "AddExp { ";
+std::ostream &BinExpAST::print(std::ostream &out, size_t indent) const {
+  print_indent(out, indent) << name() << " { ";
   if (!op)
     out << "null, ";
   else

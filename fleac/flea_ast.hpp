@@ -92,26 +92,37 @@ public:
   std::ostream &print(std::ostream &out, size_t indent = 0) const override;
 };
 
-// MulExp ::= UnaryExp | (MulExp ("*" | "/" | "%") UnaryExp);
-class MulExpAST : public BaseAST {
+class BinExpAST : public BaseAST {
+protected:
+  virtual const char *name() const = 0;
+
 public:
-  MulExpAST(char op, BaseAST *lhs, BaseAST *rhs = nullptr)
-      : op(op), lhs(lhs), rhs(rhs) {}
   char op;
   std::unique_ptr<BaseAST> lhs;
   std::unique_ptr<BaseAST> rhs;
+
+  BinExpAST(char op, BaseAST *lhs, BaseAST *rhs) : op(op), lhs(lhs), rhs(rhs) {}
   std::ostream &print(std::ostream &out, size_t indent = 0) const override;
 };
 
+// MulExp ::= UnaryExp | (MulExp ("*" | "/" | "%") UnaryExp);
+class MulExpAST : public BinExpAST {
+protected:
+  const char *name() const override { return "MulExp"; }
+
+public:
+  MulExpAST(char op, BaseAST *lhs, BaseAST *rhs = nullptr)
+      : BinExpAST(op, lhs, rhs) {}
+};
+
 // AddExp ::= MulExp | (AddExp ("+" | "-") MulExp);
-class AddExpAST : public BaseAST {
+class AddExpAST : public BinExpAST {
+protected:
+  const char *name() const override { return "AddExp"; }
+
 public:
   AddExpAST(char op, BaseAST *lhs, BaseAST *rhs = nullptr)
-      : op(op), lhs(lhs), rhs(rhs) {}
-  char op;
-  std::unique_ptr<BaseAST> lhs;
-  std::unique_ptr<BaseAST> rhs;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+      : BinExpAST(op, lhs, rhs) {}
 };
 
 #endif // FLEA_AST_HPP_FLAG

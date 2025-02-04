@@ -1,31 +1,38 @@
 #include "flea_ast.hpp"
 
-void CompUnitAST::print(std::ostream &out) const {
-  out << "CompUnit { ";
-  func_def->print(out);
-  out << " }";
+std::ostream &print_indent(std::ostream &out, size_t indent) {
+  for (size_t i = 0; i < indent; ++i)
+    out.put(' ');
+  return out;
 }
 
-void FuncDefAST::print(std::ostream &out) const {
-  out << "FuncDef { ";
-  func_type->print(out);
-  out << ", " << ident << ", ";
-  block->print(out);
-  out << " }";
+std::ostream &CompUnitAST::print(std::ostream &out, size_t indent) const {
+  print_indent(out, indent) << "CompUnit { " << '\n';
+  func_def->print(out, indent + AST_INDENT) << '\n';
+  return print_indent(out, indent) << "}";
 }
 
-void FuncTypeAST::print(std::ostream &out) const {
-  out << "FuncType { " << ident << " }";
+std::ostream &FuncDefAST::print(std::ostream &out, size_t indent) const {
+  print_indent(out, indent) << "FuncDef { \n";
+  func_type->print(out, indent + AST_INDENT) << ", \n";
+  print_indent(out, indent + AST_INDENT) << ident << ", \n";
+  block->print(out, indent + AST_INDENT) << '\n';
+  return print_indent(out, indent) << "}";
 }
 
-void BlockAST::print(std::ostream &out) const {
-  out << "Block { ";
-  stmt->print(out);
-  out << " }";
+std::ostream &FuncTypeAST::print(std::ostream &out, size_t indent) const {
+  return print_indent(out, indent) << "FuncType { " << ident << " }";
 }
 
-void StmtAST::print(std::ostream &out) const {
-  out << "Stmt { ";
-  out << number;
-  out << " }";
+std::ostream &BlockAST::print(std::ostream &out, size_t indent) const {
+  print_indent(out, indent) << "Block { ";
+  return stmt->print(out) << " }";
+}
+
+std::ostream &StmtAST::print(std::ostream &out, size_t indent) const {
+  return print_indent(out, indent) << "Stmt { " << number << " }";
+}
+
+std::ostream &operator<<(std::ostream &out, const BaseAST &ast) {
+  return ast.print(out);
 }

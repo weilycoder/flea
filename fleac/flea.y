@@ -27,7 +27,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef FuncType Block Stmt Exp PrimaryExp Number UnaryExp
+%type <ast_val> FuncDef FuncType Block Stmt Exp Number PrimaryExp UnaryExp MulExp AddExp
 
 %%
 
@@ -51,14 +51,14 @@ Block : '{' Stmt '}' { $$ = new BlockAST($2); } ;
 
 Stmt : RETURN Exp ';' { $$ = new StmtAST($2); } ;
 
-Exp : UnaryExp { $$ = new ExpAST($1); } ;
+Exp : AddExp { $$ = new ExpAST($1); } ;
+
+Number : INT_CONST { $$ = new NumberAST($1); } ;
 
 PrimaryExp
   : '(' Exp ')' { $$ = new PrimaryExpAST($2); }
   | Number { $$ = new PrimaryExpAST($1); }
   ;
-
-Number : INT_CONST { $$ = new NumberAST($1); } ;
 
 UnaryExp
   : PrimaryExp { $$ = new UnaryExpAST(0, $1); }
@@ -67,6 +67,16 @@ UnaryExp
   | '!' UnaryExp { $$ = new UnaryExpAST('!', $2); }
   ;
 
+MulExp
+  : UnaryExp { $$ = new MulExpAST(0, $1); }
+  | MulExp '*' UnaryExp { $$ = new MulExpAST('*', $1, $3); }
+  | MulExp '/' UnaryExp { $$ = new MulExpAST('/', $1, $3); }
+  | MulExp '%' UnaryExp { $$ = new MulExpAST('%', $1, $3); }
+
+AddExp
+  : MulExp { $$ = new AddExpAST(0, $1); }
+  | AddExp '+' MulExp { $$ = new AddExpAST('+', $1, $3); }
+  | AddExp '-' MulExp { $$ = new AddExpAST('-', $1, $3); }
 
 %%
 

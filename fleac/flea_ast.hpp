@@ -92,4 +92,26 @@ public:
   std::ostream &print(std::ostream &out, size_t indent = 0) const override;
 };
 
+// MulExp ::= UnaryExp | (MulExp ("*" | "/" | "%") UnaryExp);
+class MulExpAST : public BaseAST {
+public:
+  MulExpAST(char op, BaseAST *lhs, BaseAST *rhs = nullptr)
+      : op(op), lhs(lhs), rhs(rhs) {}
+  char op;
+  std::unique_ptr<BaseAST> lhs;
+  std::unique_ptr<BaseAST> rhs;
+  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+};
+
+// AddExp ::= MulExp | (AddExp ("+" | "-") MulExp);
+class AddExpAST : public BaseAST {
+public:
+  AddExpAST(char op, BaseAST *lhs, BaseAST *rhs = nullptr)
+      : op(op), lhs(lhs), rhs(rhs) {}
+  char op;
+  std::unique_ptr<BaseAST> lhs;
+  std::unique_ptr<BaseAST> rhs;
+  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+};
+
 #endif // FLEA_AST_HPP_FLAG

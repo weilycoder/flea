@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 class BaseAST {
 public:
@@ -23,22 +24,15 @@ public:
   std::ostream &print(std::ostream &out, size_t indent = 0) const override;
 };
 
+// FuncType ::= "int";
 // FuncDef ::= FuncType IDENT "(" ")" Block;
 class FuncDefAST : public BaseAST {
 public:
-  FuncDefAST(BaseAST *func_type, const std::string *ident, BaseAST *block)
-      : func_type(func_type), ident(*ident), block(block) {}
-  std::unique_ptr<BaseAST> func_type;
-  std::string ident;
+  FuncDefAST(std::string *func_type, std::string *ident, BaseAST *block)
+      : func_type(func_type), ident(ident), block(block) {}
+  std::unique_ptr<std::string>func_type;
+  std::unique_ptr<std::string> ident;
   std::unique_ptr<BaseAST> block;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
-};
-
-// FuncType ::= "int";
-class FuncTypeAST : public BaseAST {
-public:
-  FuncTypeAST(const std::string &ident) : ident(ident) {}
-  std::string ident;
   std::ostream &print(std::ostream &out, size_t indent = 0) const override;
 };
 

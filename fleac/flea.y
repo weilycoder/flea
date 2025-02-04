@@ -27,7 +27,11 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef FuncType Block Stmt Exp Number PrimaryExp UnaryExp MulExp AddExp RelExp EqExp
+%type <ast_val> FuncDef
+%type <str_val> FuncType
+%type <ast_val> Block Stmt
+%type <ast_val> Exp Number
+%type <ast_val> PrimaryExp UnaryExp MulExp AddExp RelExp EqExp
 
 %%
 
@@ -44,7 +48,7 @@ FuncDef
   }
   ;
 
-FuncType : INT { $$ = new FuncTypeAST("int"); } ;
+FuncType : INT { $$ = new std::string("int"); } ;
 
 Block : '{' Stmt '}' { $$ = new BlockAST($2); } ;
 

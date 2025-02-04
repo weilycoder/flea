@@ -23,19 +23,18 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
   BaseAST *ast_val;
 }
 
-%token INT RETURN
+%token INT RETURN LT GT LE GE EQ NE
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef FuncType Block Stmt Exp Number PrimaryExp UnaryExp MulExp AddExp
+%type <ast_val> FuncDef FuncType Block Stmt Exp Number PrimaryExp UnaryExp MulExp AddExp RelExp EqExp
 
 %%
 
 CompUnit
   : FuncDef {
-    using namespace std;
-    auto comp_unit = make_unique<CompUnitAST>($1);
-    ast = move(comp_unit);
+    auto comp_unit = std::make_unique<CompUnitAST>($1);
+    ast = std::move(comp_unit);
   }
   ;
 
@@ -51,7 +50,7 @@ Block : '{' Stmt '}' { $$ = new BlockAST($2); } ;
 
 Stmt : RETURN Exp ';' { $$ = new StmtAST($2); } ;
 
-Exp : AddExp { $$ = new ExpAST($1); } ;
+Exp : EqExp { $$ = new ExpAST($1); } ;
 
 Number : INT_CONST { $$ = new NumberAST($1); } ;
 
@@ -72,11 +71,27 @@ MulExp
   | MulExp '*' UnaryExp { $$ = new MulExpAST('*', $1, $3); }
   | MulExp '/' UnaryExp { $$ = new MulExpAST('/', $1, $3); }
   | MulExp '%' UnaryExp { $$ = new MulExpAST('%', $1, $3); }
+  ;
 
 AddExp
   : MulExp { $$ = new AddExpAST(0, $1); }
   | AddExp '+' MulExp { $$ = new AddExpAST('+', $1, $3); }
   | AddExp '-' MulExp { $$ = new AddExpAST('-', $1, $3); }
+  ;
+
+RelExp
+  : AddExp { $$ = new RelExpAST(0, $1); }
+  | RelExp LT AddExp { $$ = new AddExpAST('<', $1, $3); }
+  | RelExp GT AddExp { $$ = new AddExpAST('>', $1, $3); }
+  | RelExp LE AddExp { $$ = new AddExpAST('l', $1, $3); }
+  | RelExp GE AddExp { $$ = new AddExpAST('g', $1, $3); }
+  ;
+
+EqExp
+  : RelExp { $$ = new EqExpAST(0, $1); }
+  | EqExp EQ RelExp { $$ = new EqExpAST('e', $1, $3); }
+  | EqExp NE RelExp { $$ = new EqExpAST('n', $1, $3); }
+  ;
 
 %%
 

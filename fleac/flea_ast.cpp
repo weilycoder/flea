@@ -1,5 +1,22 @@
 #include "flea_ast.hpp"
 
+static std::string id2op(char id) {
+  switch (id) {
+  case 0:
+    return "null";
+  case 'l':
+    return "<=";
+  case 'g':
+    return ">=";
+  case 'e':
+    return "==";
+  case 'n':
+    return "!=";
+  default:
+    return std::string(1, id);
+  }
+}
+
 static std::ostream &print_indent(std::ostream &out, size_t indent) {
   for (size_t i = 0; i < indent; ++i)
     out.put(' ');
@@ -41,7 +58,9 @@ std::ostream &ExpAST::print(std::ostream &out, size_t indent) const {
 }
 
 std::ostream &PrimaryExpAST::print(std::ostream &out, size_t indent) const {
-  return print_indent(out, indent) << "PrimaryExp { " << *exp << " }";
+  print_indent(out, indent) << "PrimaryExp {\n";
+  exp->print(out, indent + AST_INDENT) << '\n';
+  return print_indent(out, indent) << "}";
 }
 
 std::ostream &NumberAST::print(std::ostream &out, size_t indent) const {
@@ -49,24 +68,20 @@ std::ostream &NumberAST::print(std::ostream &out, size_t indent) const {
 }
 
 std::ostream &UnaryExpAST::print(std::ostream &out, size_t indent) const {
-  print_indent(out, indent) << "UnaryExp { ";
-  if (!unary_op)
-    out << "null, ";
-  else
-    out << unary_op << ", ";
-  return exp->print(out) << " }";
+  print_indent(out, indent) << "UnaryExp {\n";
+  print_indent(out, indent + AST_INDENT) << id2op(unary_op) << ",\n";
+  exp->print(out, indent + AST_INDENT) << "\n";
+  return print_indent(out, indent) << "}";
 }
 
 std::ostream &BinExpAST::print(std::ostream &out, size_t indent) const {
-  print_indent(out, indent) << name() << " { ";
-  if (!op)
-    out << "null, ";
-  else
-    out << op << ", ";
-  out << *lhs;
-  if (rhs)
-    out << ", " << *rhs;
-  return out << " }";
+  print_indent(out, indent) << name() << " {\n";
+  print_indent(out, indent + AST_INDENT) << id2op(op) << ",\n";
+  lhs->print(out, indent + AST_INDENT);
+  if (rhs) {
+    rhs->print(out << ",\n", indent + AST_INDENT);
+  }
+  return print_indent(out << "\n", indent) << "}";
 }
 
 std::ostream &operator<<(std::ostream &out, const BaseAST &ast) {

@@ -58,7 +58,7 @@ public:
   std::ostream &print(std::ostream &out, size_t indent = 0) const override;
 };
 
-// Exp ::= UnaryExp;
+// Exp ::= EqExp;
 class ExpAST : public BaseAST {
 public:
   ExpAST(BaseAST *unary_exp) : unary_exp(unary_exp) {}
@@ -122,6 +122,26 @@ protected:
 
 public:
   AddExpAST(char op, BaseAST *lhs, BaseAST *rhs = nullptr)
+      : BinExpAST(op, lhs, rhs) {}
+};
+
+// RelExp ::= AddExp | RelExp ("<" | ">" | "<=" | ">=") AddExp;
+class RelExpAST : public BinExpAST {
+protected:
+  const char *name() const override { return "RelExp"; }
+
+public:
+  RelExpAST(char id, BaseAST *lhs, BaseAST *rhs = nullptr)
+      : BinExpAST(id, lhs, rhs) {}
+};
+
+// EqExp ::= RelExp | EqExp ("==" | "!=") RelExp;
+class EqExpAST : public BinExpAST {
+protected:
+  const char *name() const override { return "EqExp"; }
+
+public:
+  EqExpAST(char op, BaseAST *lhs, BaseAST *rhs = nullptr)
       : BinExpAST(op, lhs, rhs) {}
 };
 

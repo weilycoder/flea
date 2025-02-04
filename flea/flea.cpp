@@ -67,19 +67,36 @@ size_t check_tle() {
   return cnt;
 }
 
-void exit_with_success() {
 #ifdef EXITING_LOG_ENABLED
+#include <ctime>
+#include <iomanip>
+static clock_t start_time = 0;
+void output_exit_log(int code) {
+  clock_t end_time = clock();
   clog << "====================" << endl;
-  clog << "The program terminates after running " << check_tle() << " step(s).";
-  clog << endl;
+  clog << "The program terminates after running ";
+  clog << check_tle() << " step(s) ";
+  clog << "with exit code " << code << "." << endl;
+  clog << "Time elapsed: ";
+  clog << fixed << setprecision(3);
+  clog << (double)(end_time - start_time) / CLOCKS_PER_SEC << "s" << endl;
+}
 #endif
-  exit(EXIT_SUCCESS);
+
+void exit_with_success(int code = EXIT_SUCCESS) {
+#ifdef EXITING_LOG_ENABLED
+  output_exit_log(code);
+#endif
+  exit(code);
 }
 void exit_with_error(const char *msg) {
   if (line == -1)
     clog << msg << endl;
   else
     clog << "Line " << line << ": " << msg << endl;
+#ifdef EXITING_LOG_ENABLED
+  output_exit_log(EXIT_FAILURE);
+#endif
   exit(EXIT_FAILURE);
 }
 
@@ -125,8 +142,10 @@ void puti(int32_t a, ostream &os = cout) {
 }
 
 void go_to(int32_t a) {
-  if (a == -1) [[unlikely]]
+  if (a == -1)
     exit_with_success();
+  if (a < -1) [[unlikely]]
+    exit_with_success(-1 - a);
   if (0 < a && a <= (int32_t)codes.size())
     line = a - 1;
   else
@@ -594,6 +613,9 @@ int main(int argc, char *argv[]) try {
 #endif
   line = 1;
   cin.clear();
+#ifdef EXITING_LOG_ENABLED
+  start_time = clock();
+#endif
   for (line = 1; line <= (int32_t)codes.size(); ++line, check_tle()) {
     codes[line - 1].execute();
 #ifdef DEBUG_MODE_ENABLED

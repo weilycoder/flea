@@ -9,7 +9,7 @@ void CompUnitAST::print(std::ostream &out) const {
 void FuncDefAST::print(std::ostream &out) const {
   out << "FuncDef { ";
   func_type->print(out);
-  out << " " << ident << " ";
+  out << ", " << ident << ", ";
   block->print(out);
   out << " }";
 }

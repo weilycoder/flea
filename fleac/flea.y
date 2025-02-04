@@ -11,21 +11,22 @@
 #include <string>
 
 int yylex();
-void yyerror(std::unique_ptr<std::string> &ast, const char *s);
+void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 
 %}
 
 // 定义 parser 函数和错误处理函数的附加参数
 // 我们需要返回一个字符串作为 AST, 所以我们把附加参数定义成字符串的智能指针
 // 解析完成后, 我们要手动修改这个参数, 把它设置成解析得到的字符串
-%parse-param { std::unique_ptr<std::string> &ast }
+%parse-param { std::unique_ptr<BaseAST> &ast }
 
 // yylval 的定义, 我们把它定义成了一个联合体 (union)
 // 因为 token 的值有的是字符串指针, 有的是整数
 // 之前我们在 lexer 中用到的 str_val 和 int_val 就是在这里被定义的
 %union {
-  std::string *str_val;
   int int_val;
+  std::string *str_val;
+  BaseAST *ast_val;
 }
 
 // lexer 返回的所有 token 种类的声明
@@ -34,8 +35,8 @@ void yyerror(std::unique_ptr<std::string> &ast, const char *s);
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
-// 非终结符的类型定义
-%type <str_val> FuncDef FuncType Block Stmt Number
+%type <ast_val> FuncDef FuncType Block Stmt
+%type <int_val> Number
 
 %%
 
@@ -47,7 +48,9 @@ void yyerror(std::unique_ptr<std::string> &ast, const char *s);
 CompUnit
   : FuncDef {
     using namespace std;
-    ast = unique_ptr<string>($1);
+    auto comp_unit = make_unique<CompUnitAST>();
+    comp_unit->func_def = unique_ptr<BaseAST>($1);
+    ast = move(comp_unit);
   }
   ;
 
@@ -56,45 +59,50 @@ CompUnit
 FuncDef
   : FuncType IDENT '(' ')' Block {
     using namespace std;
-    auto type = unique_ptr<string>($1);
-    auto ident = unique_ptr<string>($2);
-    auto block = unique_ptr<string>($5);
-    $$ = new string(*type + " " + *ident + "() " + *block);
+    auto ast = new FuncDefAST();
+    ast->func_type = unique_ptr<BaseAST>($1);
+    ast->ident = *unique_ptr<string>($2);
+    ast->block = unique_ptr<BaseAST>($5);
+    $$ = ast;
   }
   ;
 
 FuncType
   : INT {
     using namespace std;
-    $$ = new string("int");
+    auto ast = new FuncTypeAST();
+    ast->ident = "int";
+    $$ = ast;
   }
   ;
 
 Block
   : '{' Stmt '}' {
     using namespace std;
-    auto stmt = unique_ptr<string>($2);
-    $$ = new string("{ " + *stmt + " }");
+    auto ast = new BlockAST();
+    ast->stmt = unique_ptr<BaseAST>($2);
+    $$ = ast;
   }
   ;
 
 Stmt
   : RETURN Number ';' {
     using namespace std;
-    auto number = unique_ptr<string>($2);
-    $$ = new string("return " + *number + ";");
+    auto ast = new StmtAST();
+    ast->number = $2;
+    $$ = ast;
   }
   ;
 
 Number
   : INT_CONST {
     using namespace std;
-    $$ = new string(to_string($1));
+    $$ = $1;
   }
   ;
 
 %%
 
-void yyerror(std::unique_ptr<std::string> &ast, const char *s) {
+void yyerror(std::unique_ptr<BaseAST> &ast, const char *s) {
   std::cerr << "error: " << s << std::endl;
 }

@@ -8,5 +8,6 @@ EBNF.txt
 main
 *.exe
 *.out
+fleac/fleac
 
 *.flea*

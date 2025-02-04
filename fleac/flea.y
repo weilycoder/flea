@@ -19,7 +19,6 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 
 %union {
   int int_val;
-  char char_val;
   std::string *str_val;
   BaseAST *ast_val;
 }
@@ -29,104 +28,43 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 %token <int_val> INT_CONST
 
 %type <ast_val> FuncDef FuncType Block Stmt Exp PrimaryExp Number UnaryExp
-%type <char_val> UnaryOp
 
 %%
 
 CompUnit
   : FuncDef {
     using namespace std;
-    auto comp_unit = make_unique<CompUnitAST>();
-    comp_unit->func_def = unique_ptr<BaseAST>($1);
+    auto comp_unit = make_unique<CompUnitAST>($1);
     ast = move(comp_unit);
   }
   ;
 
 FuncDef
   : FuncType IDENT '(' ')' Block {
-    using namespace std;
-    auto ast = new FuncDefAST();
-    ast->func_type = unique_ptr<BaseAST>($1);
-    ast->ident = *unique_ptr<string>($2);
-    ast->block = unique_ptr<BaseAST>($5);
-    $$ = ast;
+    $$ = new FuncDefAST($1, $2, $5);
   }
   ;
 
-FuncType
-  : INT {
-    auto ast = new FuncTypeAST();
-    ast->ident = "int";
-    $$ = ast;
-  }
-  ;
+FuncType : INT { $$ = new FuncTypeAST("int"); } ;
 
-Block
-  : '{' Stmt '}' {
-    using namespace std;
-    auto ast = new BlockAST();
-    ast->stmt = unique_ptr<BaseAST>($2);
-    $$ = ast;
-  }
-  ;
+Block : '{' Stmt '}' { $$ = new BlockAST($2); } ;
 
-Stmt
-  : RETURN Exp ';' {
-    auto ast = new StmtAST();
-    ast->exp = std::unique_ptr<BaseAST>($2);
-    $$ = ast;
-  }
-  ;
+Stmt : RETURN Exp ';' { $$ = new StmtAST($2); } ;
 
-Exp
-  : UnaryExp {
-    using namespace std;
-    auto ast = new ExpAST();
-    ast->unary_exp = unique_ptr<BaseAST>($1);
-    $$ = ast;
-  }
-  ;
+Exp : UnaryExp { $$ = new ExpAST($1); } ;
 
 PrimaryExp
-  : '(' Exp ')' {
-    auto ast = new PrimaryExpAST();
-    ast->exp = std::unique_ptr<BaseAST>($2);
-    $$ = ast;
-  }
-  | Number {
-    auto ast = new PrimaryExpAST();
-    ast->exp = std::unique_ptr<BaseAST>($1);
-    $$ = ast;
-  }
+  : '(' Exp ')' { $$ = new PrimaryExpAST($2); }
+  | Number { $$ = new PrimaryExpAST($1); }
   ;
 
-Number
-  : INT_CONST {
-    auto ast = new NumberAST();
-    ast->number = $1;
-    $$ = ast;
-  }
-  ;
-
-UnaryOp
-  : '+' { $$ = '+'; }
-  | '-' { $$ = '-'; }
-  | '!' { $$ = '!'; }
-  ;
+Number : INT_CONST { $$ = new NumberAST($1); } ;
 
 UnaryExp
-  : PrimaryExp {
-    auto ast = new UnaryExpAST();
-    ast->unary_op = 0;
-    ast->exp = std::unique_ptr<BaseAST>($1);
-    $$ = ast;
-  }
-  | UnaryOp UnaryExp {
-    auto ast = new UnaryExpAST();
-    ast->unary_op = $1;
-    ast->exp = std::unique_ptr<BaseAST>($2);
-    $$ = ast;
-  }
+  : PrimaryExp { $$ = new UnaryExpAST(0, $1); }
+  | '+' UnaryExp { $$ = new UnaryExpAST('+', $2); }
+  | '-' UnaryExp { $$ = new UnaryExpAST('-', $2); }
+  | '!' UnaryExp { $$ = new UnaryExpAST('!', $2); }
   ;
 
 

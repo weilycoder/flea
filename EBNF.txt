@@ -1,9 +1,9 @@
-CompUnit  ::= FuncDef;
+CompUnit    ::= FuncDef;
 
-FuncDef   ::= FuncType IDENT "(" ")" Block;
-FuncType  ::= "int";
+FuncDef     ::= FuncType IDENT "(" ")" Block;
+FuncType    ::= "int";
 
-Block     ::= "{" Stmt "}";
+Block       ::= "{" Stmt "}";
 Stmt        ::= "return" Exp ";";
 
 Exp         ::= AddExp;

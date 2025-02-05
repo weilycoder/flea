@@ -12,7 +12,7 @@ class BaseAST {
 public:
   BaseAST() = default;
   virtual ~BaseAST() = default;
-  virtual std::ostream &print(std::ostream &out, size_t indent = 0) const = 0;
+  virtual void print(std::ostream &out) const = 0;
   friend std::ostream &operator<<(std::ostream &out, const BaseAST &ast);
 };
 
@@ -21,7 +21,7 @@ class CompUnitAST : public BaseAST {
 public:
   CompUnitAST(BaseAST *func_def) : func_def(func_def) {}
   std::unique_ptr<BaseAST> func_def;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 // FuncType ::= "int";
@@ -30,10 +30,10 @@ class FuncDefAST : public BaseAST {
 public:
   FuncDefAST(std::string *func_type, std::string *ident, BaseAST *block)
       : func_type(func_type), ident(ident), block(block) {}
-  std::unique_ptr<std::string>func_type;
+  std::unique_ptr<std::string> func_type;
   std::unique_ptr<std::string> ident;
   std::unique_ptr<BaseAST> block;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 // Block ::= "{" Stmt "}";
@@ -41,7 +41,7 @@ class BlockAST : public BaseAST {
 public:
   BlockAST(BaseAST *stmt) : stmt(stmt) {}
   std::unique_ptr<BaseAST> stmt;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 // Stmt ::= "return" Exp ";";
@@ -49,7 +49,7 @@ class StmtAST : public BaseAST {
 public:
   StmtAST(BaseAST *exp) : exp(exp) {}
   std::unique_ptr<BaseAST> exp;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 // Exp ::= EqExp;
@@ -57,7 +57,7 @@ class ExpAST : public BaseAST {
 public:
   ExpAST(BaseAST *unary_exp) : unary_exp(unary_exp) {}
   std::unique_ptr<BaseAST> unary_exp;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 // PrimaryExp ::= "(" Exp ")" | Number;
@@ -65,7 +65,7 @@ class PrimaryExpAST : public BaseAST {
 public:
   PrimaryExpAST(BaseAST *exp) : exp(exp) {}
   std::unique_ptr<BaseAST> exp;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 // Number ::= INT_CONST;
@@ -73,7 +73,7 @@ class NumberAST : public BaseAST {
 public:
   NumberAST(int32_t number) : number(number) {}
   int32_t number;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 // UnaryOp ::= "+" | "-" | "!";
@@ -83,7 +83,7 @@ public:
   UnaryExpAST(char unary_op, BaseAST *exp) : unary_op(unary_op), exp(exp) {}
   char unary_op;
   std::unique_ptr<BaseAST> exp;
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 class BinExpAST : public BaseAST {
@@ -96,7 +96,7 @@ public:
   std::unique_ptr<BaseAST> rhs;
 
   BinExpAST(char op, BaseAST *lhs, BaseAST *rhs) : op(op), lhs(lhs), rhs(rhs) {}
-  std::ostream &print(std::ostream &out, size_t indent = 0) const override;
+  void print(std::ostream &out) const override;
 };
 
 // MulExp ::= UnaryExp | (MulExp ("*" | "/" | "%") UnaryExp);

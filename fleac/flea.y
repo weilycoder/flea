@@ -100,5 +100,7 @@ EqExp
 %%
 
 void yyerror(std::unique_ptr<BaseAST> &ast, const char *s) {
+  if (ast)
+    std::cerr << *ast << std::endl;
   std::cerr << "error: " << s << std::endl;
 }

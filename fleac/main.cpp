@@ -19,7 +19,8 @@ int main(int argc, const char *argv[]) {
 
   unique_ptr<BaseAST> ast;
   int ret = yyparse(ast);
-  assert(!ret);
+  if (ret != 0)
+    return ret;
 
   cout << *ast << endl;
   return 0;

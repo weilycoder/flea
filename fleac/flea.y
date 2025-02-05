@@ -22,16 +22,20 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
   char char_val;
   std::string *str_val;
   BaseAST *ast_val;
+  std::vector<std::unique_ptr<BaseAST>> *list_val;
 }
 
-%token INT RETURN LT GT LE GE EQ NE
+%token INT CONST RETURN LT GT LE GE EQ NE
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
 %type <ast_val> FuncDef
-%type <char_val> FuncType
+%type <char_val> FuncType BType
+%type <list_val> BlockItemList ConstDefList
 %type <ast_val> Block Stmt
-%type <ast_val> Exp Number
+%type <ast_val> BlockItem
+%type <ast_val> Decl ConstDecl ConstDef ConstInitVal
+%type <ast_val> Exp ConstExp Number LVal
 %type <ast_val> PrimaryExp UnaryExp MulExp AddExp RelExp EqExp
 
 %%
@@ -49,18 +53,57 @@ FuncDef
   }
   ;
 
+BType : INT { $$ = (char)1; } ;
+
 FuncType : INT { $$ = (char)1; } ;
 
-Block : '{' Stmt '}' { $$ = new BlockAST($2); } ;
+Block : '{' BlockItemList '}' { $$ = new BlockAST($2); } ;
+
+BlockItem
+  : Decl { $$ = new BlockItemAST($1); }
+  | Stmt { $$ = new BlockItemAST($1); } ;
+
+BlockItemList
+  : { $$ = new std::vector<std::unique_ptr<BaseAST>>; }
+  | BlockItemList BlockItem {
+    $1->emplace_back($2);
+    $$ = $1;
+  }
+  ;
+
+Decl : ConstDecl { $$ = new DeclAST($1); } ;
+
+ConstDecl : CONST BType ConstDefList ';' { $$ = new ConstDeclAST($2, $3); } ;
+
+ConstDef : IDENT '=' ConstInitVal { $$ = new ConstDefAST($1, $3); } ;
+
+ConstDefList
+  : ConstDef {
+    auto def_l = new std::vector<std::unique_ptr<BaseAST>>;
+    def_l->emplace_back($1);
+    $$ = def_l;
+  }
+  | ConstDefList ',' ConstDef {
+    $1->emplace_back($3);
+    $$ = $1;
+  }
+  ;
+
+ConstInitVal : ConstExp { $$ = new ConstInitValAST($1); } ;
 
 Stmt : RETURN Exp ';' { $$ = new StmtAST($2); } ;
 
 Exp : EqExp { $$ = new ExpAST($1); } ;
 
+ConstExp : Exp { $$ = new ConstExpAST($1); } ;
+
+LVal : IDENT { $$ = new LValAST($1); } ;
+
 Number : INT_CONST { $$ = new NumberAST($1); } ;
 
 PrimaryExp
   : '(' Exp ')' { $$ = new PrimaryExpAST($2); }
+  | LVal { $$ = new PrimaryExpAST($1); }
   | Number { $$ = new PrimaryExpAST($1); }
   ;
 

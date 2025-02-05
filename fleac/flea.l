@@ -30,6 +30,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 {LineComment}   { /* ignore */ }
 
 "int"           { return INT; }
+"const"         { return CONST; }
 "return"        { return RETURN; }
 
 {Identifier}    { yylval.str_val = new std::string(yytext); return IDENT; }

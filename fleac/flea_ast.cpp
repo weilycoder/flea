@@ -39,9 +39,32 @@ void FuncDefAST::print(std::ostream &out) const {
 
 void BlockAST::print(std::ostream &out) const {
   out << "{ ";
-  stmt->print(out);
-  out << " }";
+  for (const auto &item : *item_l)
+    item->print(out), out << ' ';
+  out << "}";
 }
+
+void BlockItemAST::print(std::ostream &out) const { item->print(out); }
+
+void DeclAST::print(std::ostream &out) const { decl->print(out); }
+
+void ConstDeclAST::print(std::ostream &out) const {
+  out << "const " << id2tp(type_id) << ' ';
+  const auto &def_l = *this->def_l;
+  for (size_t i = 0; i < def_l.size(); ++i) {
+    if (i != 0)
+      out << ", ";
+    def_l[i]->print(out);
+  }
+  out << ";";
+}
+
+void ConstDefAST::print(std::ostream &out) const {
+  out << *ident << " = ";
+  const_init_val->print(out);
+}
+
+void ConstInitValAST::print(std::ostream &out) const { const_exp->print(out); }
 
 void StmtAST::print(std::ostream &out) const {
   out << "return ";
@@ -51,11 +74,15 @@ void StmtAST::print(std::ostream &out) const {
 
 void ExpAST::print(std::ostream &out) const { unary_exp->print(out); }
 
+void ConstExpAST::print(std::ostream &out) const { exp->print(out); }
+
 void PrimaryExpAST::print(std::ostream &out) const {
   out << "(";
   exp->print(out);
   out << ")";
 }
+
+void LValAST::print(std::ostream &out) const { out << *ident; }
 
 void NumberAST::print(std::ostream &out) const { out << number; }
 

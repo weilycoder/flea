@@ -30,18 +30,62 @@ class FuncDefAST : public BaseAST {
 public:
   FuncDefAST(char type_id, std::string *ident, BaseAST *block)
       : func_type_id(type_id), ident(ident), block(block) {}
-  // std::unique_ptr<std::string> func_type;
   char func_type_id;
   std::unique_ptr<std::string> ident;
   std::unique_ptr<BaseAST> block;
   void print(std::ostream &out) const override;
 };
 
-// Block ::= "{" Stmt "}";
+// Block ::= "{" {BlockItem} "}";
 class BlockAST : public BaseAST {
 public:
-  BlockAST(BaseAST *stmt) : stmt(stmt) {}
-  std::unique_ptr<BaseAST> stmt;
+  BlockAST(std::vector<std::unique_ptr<BaseAST>> *item_l) : item_l(item_l) {}
+  std::unique_ptr<std::vector<std::unique_ptr<BaseAST>>> item_l;
+  void print(std::ostream &out) const override;
+};
+
+// BlockItem ::= Decl | Stmt;
+class BlockItemAST : public BaseAST {
+public:
+  BlockItemAST(BaseAST *item) : item(item) {}
+  std::unique_ptr<BaseAST> item;
+  void print(std::ostream &out) const override;
+};
+
+// Decl ::= ConstDecl;
+class DeclAST : public BaseAST {
+public:
+  DeclAST(BaseAST *decl) : decl(decl) {}
+  std::unique_ptr<BaseAST> decl;
+  void print(std::ostream &out) const override;
+};
+
+// BType ::= "int";
+// ConstDecl ::= "const" BType ConstDef {"," ConstDef} ";";
+class ConstDeclAST : public BaseAST {
+public:
+  ConstDeclAST(char type_id, std::vector<std::unique_ptr<BaseAST>> *def_l)
+      : type_id(type_id), def_l(def_l) {}
+  char type_id;
+  std::unique_ptr<std::vector<std::unique_ptr<BaseAST>>> def_l;
+  void print(std::ostream &out) const override;
+};
+
+// ConstDef ::= IDENT "=" ConstInitVal;
+class ConstDefAST : public BaseAST {
+public:
+  ConstDefAST(std::string *ident, BaseAST *const_init_val)
+      : ident(ident), const_init_val(const_init_val) {}
+  std::unique_ptr<std::string> ident;
+  std::unique_ptr<BaseAST> const_init_val;
+  void print(std::ostream &out) const override;
+};
+
+// ConstInitVal ::= ConstExp;
+class ConstInitValAST : public BaseAST {
+public:
+  ConstInitValAST(BaseAST *const_exp) : const_exp(const_exp) {}
+  std::unique_ptr<BaseAST> const_exp;
   void print(std::ostream &out) const override;
 };
 
@@ -61,11 +105,27 @@ public:
   void print(std::ostream &out) const override;
 };
 
-// PrimaryExp ::= "(" Exp ")" | Number;
+// ConstExp ::= Exp;
+class ConstExpAST : public BaseAST {
+public:
+  ConstExpAST(BaseAST *exp) : exp(exp) {}
+  std::unique_ptr<BaseAST> exp;
+  void print(std::ostream &out) const override;
+};
+
+// PrimaryExp ::= "(" Exp ")" | LVal | Number;
 class PrimaryExpAST : public BaseAST {
 public:
   PrimaryExpAST(BaseAST *exp) : exp(exp) {}
   std::unique_ptr<BaseAST> exp;
+  void print(std::ostream &out) const override;
+};
+
+// LVal ::= IDENT;
+class LValAST : public BaseAST {
+public:
+  LValAST(std::string *ident) : ident(ident) {}
+  std::unique_ptr<std::string> ident;
   void print(std::ostream &out) const override;
 };
 

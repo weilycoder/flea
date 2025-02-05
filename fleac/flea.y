@@ -19,6 +19,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 
 %union {
   int int_val;
+  char char_val;
   std::string *str_val;
   BaseAST *ast_val;
 }
@@ -28,7 +29,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 %token <int_val> INT_CONST
 
 %type <ast_val> FuncDef
-%type <str_val> FuncType
+%type <char_val> FuncType
 %type <ast_val> Block Stmt
 %type <ast_val> Exp Number
 %type <ast_val> PrimaryExp UnaryExp MulExp AddExp RelExp EqExp
@@ -48,7 +49,7 @@ FuncDef
   }
   ;
 
-FuncType : INT { $$ = new std::string("int"); } ;
+FuncType : INT { $$ = (char)1; } ;
 
 Block : '{' Stmt '}' { $$ = new BlockAST($2); } ;
 

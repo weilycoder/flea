@@ -28,9 +28,10 @@ public:
 // FuncDef ::= FuncType IDENT "(" ")" Block;
 class FuncDefAST : public BaseAST {
 public:
-  FuncDefAST(std::string *func_type, std::string *ident, BaseAST *block)
-      : func_type(func_type), ident(ident), block(block) {}
-  std::unique_ptr<std::string> func_type;
+  FuncDefAST(char type_id, std::string *ident, BaseAST *block)
+      : func_type_id(type_id), ident(ident), block(block) {}
+  // std::unique_ptr<std::string> func_type;
+  char func_type_id;
   std::unique_ptr<std::string> ident;
   std::unique_ptr<BaseAST> block;
   void print(std::ostream &out) const override;

@@ -1,6 +1,19 @@
 #include "flea_ast.hpp"
 
-static std::string id2op(char id) {
+static constexpr std::string id2tp(char id) {
+  switch (id) {
+  case 0:
+  case 'v':
+    return "void";
+  case 1:
+  case 'i':
+    return "int";
+  default:
+    __builtin_unreachable();
+  }
+}
+
+static constexpr std::string id2op(char id) {
   switch (id) {
   case 0:
     return "null";
@@ -20,7 +33,7 @@ static std::string id2op(char id) {
 void CompUnitAST::print(std::ostream &out) const { func_def->print(out); }
 
 void FuncDefAST::print(std::ostream &out) const {
-  out << *func_type << ' ' << *ident << "() ";
+  out << id2tp(func_type_id) << ' ' << *ident << "() ";
   block->print(out);
 }
 

@@ -1,4 +1,6 @@
 #include "flea_ast.hpp"
+#include "flea_com.hpp"
+#include <cassert>
 
 static constexpr std::string id2tp(char id) {
   switch (id) {
@@ -29,6 +31,8 @@ static constexpr std::string id2op(char id) {
     return std::string(1, id);
   }
 }
+
+// print functions
 
 void CompUnitAST::print(std::ostream &out) const { func_def->print(out); }
 
@@ -100,4 +104,151 @@ void BinExpAST::print(std::ostream &out) const {
 
 std::ostream &operator<<(std::ostream &out, const BaseAST &ast) {
   return ast.print(out), out;
+}
+
+// const_eval functions
+
+int64_t fold_const(std::unique_ptr<BaseAST> &ast, SymbolTable *stb,
+                   bool force) {
+  int64_t val = ast->const_eval(stb, force);
+  if (force)
+    assert(val != INT64_MAX);
+  if (val == INT64_MAX)
+    return INT64_MAX;
+  ast.reset(new NumberAST((int32_t)val));
+  return val;
+}
+
+int64_t CompUnitAST::const_eval(SymbolTable *stb, bool force) {
+  return func_def->const_eval(stb, force);
+}
+
+int64_t FuncDefAST::const_eval(SymbolTable *stb, bool force) {
+  return block->const_eval(stb, force);
+}
+
+int64_t BlockAST::const_eval(SymbolTable *stb, bool force) {
+  for (const auto &item : *item_l)
+    item->const_eval(stb, force);
+  return INT64_MAX;
+}
+
+int64_t BlockItemAST::const_eval(SymbolTable *stb, bool force) {
+  return item->const_eval(stb, force);
+}
+
+int64_t DeclAST::const_eval(SymbolTable *stb, bool force) {
+  return decl->const_eval(stb, force);
+}
+
+int64_t ConstDeclAST::const_eval(SymbolTable *stb,
+                                 [[maybe_unused]] bool force) {
+  for (const auto &def : *def_l)
+    def->const_eval(stb, true);
+  return INT64_MAX;
+}
+
+int64_t ConstDefAST::const_eval(SymbolTable *stb, [[maybe_unused]] bool force) {
+  int64_t val = fold_const(const_init_val, stb, true);
+  assert(stb != nullptr);
+  assert(val != INT64_MAX);
+  stb->insertConst(*ident, (int32_t)val);
+  return INT64_MAX;
+}
+
+int64_t ConstInitValAST::const_eval(SymbolTable *stb,
+                                    [[maybe_unused]] bool force) {
+  return fold_const(const_exp, stb, true);
+}
+
+int64_t StmtAST::const_eval(SymbolTable *stb,
+                            [[maybe_unused]] bool force) {;
+  return fold_const(exp, stb, false), INT64_MAX;
+}
+
+int64_t ExpAST::const_eval(SymbolTable *stb, bool force) {
+  return fold_const(unary_exp, stb, force);
+}
+
+int64_t ConstExpAST::const_eval(SymbolTable *stb, [[maybe_unused]] bool force) {
+  return fold_const(exp, stb, true);
+}
+
+int64_t PrimaryExpAST::const_eval(SymbolTable *stb, bool force) {
+  return fold_const(exp, stb, force);
+}
+
+int64_t LValAST::const_eval(SymbolTable *stb, bool force) {
+  assert(!force || stb != nullptr);
+  try {
+    return stb->lookupConst(*ident);
+  } catch (const flea_compiler_error &) {
+    if (force)
+      throw;
+    return INT64_MAX;
+  }
+}
+
+int64_t NumberAST::const_eval([[maybe_unused]] SymbolTable *stb,
+                              [[maybe_unused]] bool force) {
+  return number;
+}
+
+int64_t UnaryExpAST::const_eval(SymbolTable *stb, bool force) {
+  int64_t val = fold_const(exp, stb, force);
+  if (val == INT64_MAX)
+    return INT64_MAX;
+  switch (unary_op) {
+  case 0:
+  case '+':
+    return val;
+  case '-':
+    return -val;
+  case '!':
+    return !val;
+  default:
+    assert(false);
+    __builtin_unreachable();
+  }
+}
+
+int64_t BinExpAST::const_eval(SymbolTable *stb, bool force) {
+  int64_t lhs_val = fold_const(lhs, stb, force);
+  if (lhs_val == INT64_MAX)
+    return INT64_MAX;
+  if (!rhs)
+    return lhs_val;
+  assert(op != (char)0);
+  int64_t rhs_val = fold_const(rhs, stb, force);
+  if (rhs_val == INT64_MAX)
+    return INT64_MAX;
+  int32_t lhs_val32 = static_cast<int32_t>(lhs_val);
+  int32_t rhs_val32 = static_cast<int32_t>(rhs_val);
+  switch (op) {
+  case '+':
+    return safe_add(lhs_val32, rhs_val32);
+  case '-':
+    return safe_sub(lhs_val32, rhs_val32);
+  case '*':
+    return safe_mul(lhs_val32, rhs_val32);
+  case '/':
+    return floor_div(lhs_val32, rhs_val32);
+  case '%':
+    return floor_mod(lhs_val32, rhs_val32);
+  case '<':
+    return lhs_val32 < rhs_val32;
+  case '>':
+    return lhs_val32 > rhs_val32;
+  case 'l':
+    return lhs_val32 <= rhs_val32;
+  case 'g':
+    return lhs_val32 >= rhs_val32;
+  case 'e':
+    return lhs_val32 == rhs_val32;
+  case 'n':
+    return lhs_val32 != rhs_val32;
+  default:
+    assert(false);
+    __builtin_unreachable();
+  }
 }

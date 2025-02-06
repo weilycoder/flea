@@ -1,4 +1,5 @@
 #include "flea_ast.hpp"
+#include "flea_sym.hpp"
 #include <cassert>
 #include <cstdio>
 #include <iostream>
@@ -23,5 +24,10 @@ int main(int argc, const char *argv[]) {
     return ret;
 
   cout << *ast << endl;
-  return 0;
+
+  // semanticAnalysis
+  SymbolTable *symtab = new SymbolTable();
+  ast->const_eval(symtab);
+  cout << *ast << endl;
+  return delete symtab, 0;
 }

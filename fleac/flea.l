@@ -35,9 +35,9 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 {Identifier}    { yylval.str_val = new std::string(yytext); return IDENT; }
 
-{Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
-{Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
-{Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
+{Decimal}       { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
+{Octal}         { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
+{Hexadecimal}   { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
 
 "<"             { return LT; }
 ">"             { return GT; }

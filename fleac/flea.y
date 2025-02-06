@@ -18,8 +18,8 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 %parse-param { std::unique_ptr<BaseAST> &ast }
 
 %union {
-  int int_val;
   char char_val;
+  int32_t int_val;
   std::string *str_val;
   BaseAST *ast_val;
   std::vector<std::unique_ptr<BaseAST>> *list_val;

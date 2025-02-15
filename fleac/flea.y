@@ -71,11 +71,11 @@ BlockItemList
   }
   ;
 
-Decl : ConstDecl { $$ = new DeclAST($1); } ;
+Decl : ConstDecl { $$ = $1; } ;
 
-ConstDecl : CONST BType ConstDefList ';' { $$ = new ConstDeclAST($2, $3); } ;
+ConstDecl : CONST BType ConstDefList ';' { $$ = new DeclAST($2, $3, true); } ;
 
-ConstDef : IDENT '=' ConstInitVal { $$ = new ConstDefAST($1, $3); } ;
+ConstDef : IDENT '=' ConstInitVal { $$ = new DefAST($1, $3, true); } ;
 
 ConstDefList
   : ConstDef {
@@ -89,13 +89,13 @@ ConstDefList
   }
   ;
 
-ConstInitVal : ConstExp { $$ = new ConstInitValAST($1); } ;
+ConstInitVal : ConstExp { $$ = new InitValAST($1, true); } ;
 
 Stmt : RETURN Exp ';' { $$ = new StmtAST($2); } ;
 
 Exp : EqExp { $$ = new ExpAST($1); } ;
 
-ConstExp : Exp { $$ = new ConstExpAST($1); } ;
+ConstExp : Exp { $$ = new ExpAST($1, true); } ;
 
 LVal : IDENT { $$ = new LValAST($1); } ;
 

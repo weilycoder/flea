@@ -57,42 +57,42 @@ public:
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
 
-// Decl ::= ConstDecl;
+// BType ::= "int";
+// Decl ::= ConstDecl | VarDecl;
+// VarDecl ::= BType VarDef {"," VarDef} ";";
+// ConstDecl ::= "const" BType ConstDef {"," ConstDef} ";";
 class DeclAST : public BaseAST {
 public:
-  DeclAST(BaseAST *decl) : decl(decl) {}
-  std::unique_ptr<BaseAST> decl;
-  void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
-};
-
-// BType ::= "int";
-// ConstDecl ::= "const" BType ConstDef {"," ConstDef} ";";
-class ConstDeclAST : public BaseAST {
-public:
-  ConstDeclAST(char type_id, std::vector<std::unique_ptr<BaseAST>> *def_l)
-      : type_id(type_id), def_l(def_l) {}
+  DeclAST(char type_id, std::vector<std::unique_ptr<BaseAST>> *def_l,
+          bool is_const = false)
+      : is_const(is_const), type_id(type_id), def_l(def_l) {}
+  bool is_const;
   char type_id;
   std::unique_ptr<std::vector<std::unique_ptr<BaseAST>>> def_l;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
 
+// VarDef ::= IDENT "=" InitVal;
 // ConstDef ::= IDENT "=" ConstInitVal;
-class ConstDefAST : public BaseAST {
+class DefAST : public BaseAST {
 public:
-  ConstDefAST(std::string *ident, BaseAST *const_init_val)
-      : ident(ident), const_init_val(const_init_val) {}
+  DefAST(std::string *ident, BaseAST *const_init_val, bool is_const = false)
+      : is_const(is_const), ident(ident), const_init_val(const_init_val) {}
+  bool is_const;
   std::unique_ptr<std::string> ident;
   std::unique_ptr<BaseAST> const_init_val;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
 
+// InitVal ::= Exp;
 // ConstInitVal ::= ConstExp;
-class ConstInitValAST : public BaseAST {
+class InitValAST : public BaseAST {
 public:
-  ConstInitValAST(BaseAST *const_exp) : const_exp(const_exp) {}
+  InitValAST(BaseAST *const_exp, bool is_const = false)
+      : is_const(is_const), const_exp(const_exp) {}
+  bool is_const;
   std::unique_ptr<BaseAST> const_exp;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
@@ -108,19 +108,13 @@ public:
 };
 
 // Exp ::= EqExp;
+// ConstExp ::= Exp;
 class ExpAST : public BaseAST {
 public:
-  ExpAST(BaseAST *unary_exp) : unary_exp(unary_exp) {}
+  ExpAST(BaseAST *unary_exp, bool is_const = false)
+      : is_const(is_const), unary_exp(unary_exp) {}
+  bool is_const;
   std::unique_ptr<BaseAST> unary_exp;
-  void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
-};
-
-// ConstExp ::= Exp;
-class ConstExpAST : public BaseAST {
-public:
-  ConstExpAST(BaseAST *exp) : exp(exp) {}
-  std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };

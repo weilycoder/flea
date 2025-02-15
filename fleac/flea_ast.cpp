@@ -50,10 +50,10 @@ void BlockAST::print(std::ostream &out) const {
 
 void BlockItemAST::print(std::ostream &out) const { item->print(out); }
 
-void DeclAST::print(std::ostream &out) const { decl->print(out); }
-
-void ConstDeclAST::print(std::ostream &out) const {
-  out << "const " << id2tp(type_id) << ' ';
+void DeclAST::print(std::ostream &out) const {
+  if (is_const)
+    out << "const ";
+  out << id2tp(type_id) << ' ';
   const auto &def_l = *this->def_l;
   for (size_t i = 0; i < def_l.size(); ++i) {
     if (i != 0)
@@ -63,12 +63,12 @@ void ConstDeclAST::print(std::ostream &out) const {
   out << ";";
 }
 
-void ConstDefAST::print(std::ostream &out) const {
+void DefAST::print(std::ostream &out) const {
   out << *ident << " = ";
   const_init_val->print(out);
 }
 
-void ConstInitValAST::print(std::ostream &out) const { const_exp->print(out); }
+void InitValAST::print(std::ostream &out) const { const_exp->print(out); }
 
 void StmtAST::print(std::ostream &out) const {
   out << "return ";
@@ -77,8 +77,6 @@ void StmtAST::print(std::ostream &out) const {
 }
 
 void ExpAST::print(std::ostream &out) const { unary_exp->print(out); }
-
-void ConstExpAST::print(std::ostream &out) const { exp->print(out); }
 
 void PrimaryExpAST::print(std::ostream &out) const {
   out << "(";
@@ -138,40 +136,29 @@ int64_t BlockItemAST::const_eval(SymbolTable *stb, bool force) {
 }
 
 int64_t DeclAST::const_eval(SymbolTable *stb, bool force) {
-  return decl->const_eval(stb, force);
-}
-
-int64_t ConstDeclAST::const_eval(SymbolTable *stb,
-                                 [[maybe_unused]] bool force) {
   for (const auto &def : *def_l)
-    def->const_eval(stb, true);
+    def->const_eval(stb, force | is_const);
   return INT64_MAX;
 }
 
-int64_t ConstDefAST::const_eval(SymbolTable *stb, [[maybe_unused]] bool force) {
-  int64_t val = fold_const(const_init_val, stb, true);
+int64_t DefAST::const_eval(SymbolTable *stb, bool force) {
+  int64_t val = fold_const(const_init_val, stb, force | is_const);
   assert(stb != nullptr);
   assert(val != INT64_MAX);
   stb->insertConst(*ident, (int32_t)val);
   return INT64_MAX;
 }
 
-int64_t ConstInitValAST::const_eval(SymbolTable *stb,
-                                    [[maybe_unused]] bool force) {
-  return fold_const(const_exp, stb, true);
+int64_t InitValAST::const_eval(SymbolTable *stb, bool force) {
+  return fold_const(const_exp, stb, force | is_const);
 }
 
-int64_t StmtAST::const_eval(SymbolTable *stb,
-                            [[maybe_unused]] bool force) {;
-  return fold_const(exp, stb, false), INT64_MAX;
+int64_t StmtAST::const_eval(SymbolTable *stb, bool force) {
+  return fold_const(exp, stb, force), INT64_MAX;
 }
 
 int64_t ExpAST::const_eval(SymbolTable *stb, bool force) {
-  return fold_const(unary_exp, stb, force);
-}
-
-int64_t ConstExpAST::const_eval(SymbolTable *stb, [[maybe_unused]] bool force) {
-  return fold_const(exp, stb, true);
+  return fold_const(unary_exp, stb, force | is_const);
 }
 
 int64_t PrimaryExpAST::const_eval(SymbolTable *stb, bool force) {

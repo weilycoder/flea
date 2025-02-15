@@ -12,11 +12,17 @@ extern FILE *yyin;
 extern int yyparse(unique_ptr<BaseAST> &ast);
 
 int main(int argc, const char *argv[]) {
-  assert(argc == 2);
+  if (argc != 2) {
+    cerr << "Usage: " << argv[0] << " <input>" << endl;
+    return 1;
+  }
   auto input = argv[1];
 
   yyin = fopen(input, "r");
-  assert(yyin);
+  if (!yyin) {
+    cerr << "Failed to open file: " << input << endl;
+    return 1;
+  }
 
   unique_ptr<BaseAST> ast;
   int ret = yyparse(ast);

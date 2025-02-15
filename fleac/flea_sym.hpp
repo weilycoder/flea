@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <variant>
 
-using Value = std::variant<int32_t, uint32_t>;
+using Value = std::variant<int32_t, uint32_t, size_t>;
 
 class SymbolTable {
 protected:
@@ -25,7 +25,8 @@ public:
   }
   void clear() { table.clear(); }
   void insertConst(const std::string &name, int32_t val) { insert(name, val); }
-  void insertVar(const std::string &name, uint32_t siz) { insert(name, offset), offset += siz; }
+  void insertVar(const std::string &name) { insert(name, offset++); }
+  void insertFunc(const std::string &name, size_t st) { insert(name, st); }
   const Value &lookup(const std::string &name) const {
     auto it = table.find(name);
     if (it != table.end())
@@ -49,6 +50,8 @@ public:
         os << "(i32) " << arg;
       else if constexpr (std::is_same_v<T, uint32_t>)
         os << "(var) %" << arg;
+      else if constexpr (std::is_same_v<T, size_t>)
+        os << "(func)";
       else
         static_assert(false, "non-exhaustive visitor!");
     };

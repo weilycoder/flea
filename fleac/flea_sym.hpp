@@ -6,14 +6,13 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <variant>
 
-struct Value {
-  int32_t val;
-  enum class Kind { CONST, VAR, FUNC } kind;
-};
+using Value = std::variant<int32_t, uint32_t>;
 
 class SymbolTable {
 protected:
+  uint32_t offset = 0;
   const SymbolTable *parent;
   std::unordered_map<std::string, Value> table;
 
@@ -25,15 +24,8 @@ public:
     table[name] = val;
   }
   void clear() { table.clear(); }
-  void insertConst(const std::string &name, int32_t val) {
-    insert(name, {val, Value::Kind::CONST});
-  }
-  void insertVar(const std::string &name) {
-    insert(name, {0, Value::Kind::VAR});
-  }
-  void insertFunc(const std::string &name) {
-    insert(name, {0, Value::Kind::FUNC});
-  }
+  void insertConst(const std::string &name, int32_t val) { insert(name, val); }
+  void insertVar(const std::string &name, uint32_t siz) { insert(name, offset), offset += siz; }
   const Value &lookup(const std::string &name) const {
     auto it = table.find(name);
     if (it != table.end())
@@ -44,24 +36,25 @@ public:
   }
   int32_t lookupConst(const std::string &name) const {
     const Value &val = lookup(name);
-    if (val.kind != Value::Kind::CONST)
+    try {
+      return std::get<int32_t>(val);
+    } catch (const std::bad_variant_access &) {
       throw not_const_error(name);
-    return val.val;
+    }
   }
   friend std::ostream &operator<<(std::ostream &os, const SymbolTable &symtab) {
+    auto visitor = [&os](auto &&arg) {
+      using T = std::decay_t<decltype(arg)>;
+      if constexpr (std::is_same_v<T, int32_t>)
+        os << "(i32) " << arg;
+      else if constexpr (std::is_same_v<T, uint32_t>)
+        os << "(var) %" << arg;
+      else
+        static_assert(false, "non-exhaustive visitor!");
+    };
     for (const auto &entry : symtab.table) {
       os << entry.first << " = ";
-      switch (entry.second.kind) {
-      case Value::Kind::CONST:
-        os << entry.second.val;
-        break;
-      case Value::Kind::VAR:
-        os << "(var)";
-        break;
-      case Value::Kind::FUNC:
-        os << "(func)";
-        break;
-      }
+      std::visit(visitor, entry.second);
       os << std::endl;
     }
     return os;

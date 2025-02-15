@@ -28,6 +28,7 @@ int main(int argc, const char *argv[]) {
   // semanticAnalysis
   SymbolTable *symtab = new SymbolTable();
   ast->const_eval(symtab);
+  cout << *symtab;
   cout << *ast << endl;
   return delete symtab, 0;
 }

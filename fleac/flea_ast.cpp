@@ -65,10 +65,10 @@ void DeclAST::print(std::ostream &out) const {
 
 void DefAST::print(std::ostream &out) const {
   out << *ident << " = ";
-  const_init_val->print(out);
+  init_val->print(out);
 }
 
-void InitValAST::print(std::ostream &out) const { const_exp->print(out); }
+void InitValAST::print(std::ostream &out) const { exp->print(out); }
 
 void StmtAST::print(std::ostream &out) const {
   out << "return ";
@@ -76,7 +76,7 @@ void StmtAST::print(std::ostream &out) const {
   out << ";";
 }
 
-void ExpAST::print(std::ostream &out) const { unary_exp->print(out); }
+void ExpAST::print(std::ostream &out) const { exp->print(out); }
 
 void PrimaryExpAST::print(std::ostream &out) const {
   out << "(";
@@ -142,7 +142,7 @@ int64_t DeclAST::const_eval(SymbolTable *stb, bool force) {
 }
 
 int64_t DefAST::const_eval(SymbolTable *stb, bool force) {
-  int64_t val = fold_const(const_init_val, stb, force | is_const);
+  int64_t val = fold_const(init_val, stb, force | is_const);
   assert(stb != nullptr);
   assert(val != INT64_MAX);
   stb->insertConst(*ident, (int32_t)val);
@@ -150,7 +150,7 @@ int64_t DefAST::const_eval(SymbolTable *stb, bool force) {
 }
 
 int64_t InitValAST::const_eval(SymbolTable *stb, bool force) {
-  return fold_const(const_exp, stb, force | is_const);
+  return fold_const(exp, stb, force | is_const);
 }
 
 int64_t StmtAST::const_eval(SymbolTable *stb, bool force) {
@@ -158,7 +158,7 @@ int64_t StmtAST::const_eval(SymbolTable *stb, bool force) {
 }
 
 int64_t ExpAST::const_eval(SymbolTable *stb, bool force) {
-  return fold_const(unary_exp, stb, force | is_const);
+  return fold_const(exp, stb, force | is_const);
 }
 
 int64_t PrimaryExpAST::const_eval(SymbolTable *stb, bool force) {

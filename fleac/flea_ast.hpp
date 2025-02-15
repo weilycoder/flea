@@ -77,11 +77,11 @@ public:
 // ConstDef ::= IDENT "=" ConstInitVal;
 class DefAST : public BaseAST {
 public:
-  DefAST(std::string *ident, BaseAST *const_init_val, bool is_const = false)
-      : is_const(is_const), ident(ident), const_init_val(const_init_val) {}
+  DefAST(std::string *ident, BaseAST *init_val, bool is_const = false)
+      : is_const(is_const), ident(ident), init_val(init_val) {}
   bool is_const;
   std::unique_ptr<std::string> ident;
-  std::unique_ptr<BaseAST> const_init_val;
+  std::unique_ptr<BaseAST> init_val;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
@@ -90,10 +90,10 @@ public:
 // ConstInitVal ::= ConstExp;
 class InitValAST : public BaseAST {
 public:
-  InitValAST(BaseAST *const_exp, bool is_const = false)
-      : is_const(is_const), const_exp(const_exp) {}
+  InitValAST(BaseAST *exp, bool is_const = false)
+      : is_const(is_const), exp(exp) {}
   bool is_const;
-  std::unique_ptr<BaseAST> const_exp;
+  std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
@@ -111,10 +111,10 @@ public:
 // ConstExp ::= Exp;
 class ExpAST : public BaseAST {
 public:
-  ExpAST(BaseAST *unary_exp, bool is_const = false)
-      : is_const(is_const), unary_exp(unary_exp) {}
+  ExpAST(BaseAST *exp, bool is_const = false)
+      : is_const(is_const), exp(exp) {}
   bool is_const;
-  std::unique_ptr<BaseAST> unary_exp;
+  std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };

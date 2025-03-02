@@ -77,7 +77,7 @@ public:
 // ConstDef ::= IDENT "=" ConstInitVal;
 class DefAST : public BaseAST {
 public:
-  DefAST(std::string *ident, BaseAST *init_val, bool is_const = false)
+  DefAST(std::string *ident, BaseAST *init_val = nullptr, bool is_const = false)
       : is_const(is_const), ident(ident), init_val(init_val) {}
   bool is_const;
   std::unique_ptr<std::string> ident;
@@ -98,10 +98,29 @@ public:
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
 
-// Stmt ::= "return" Exp ";";
+// Stmt ::= RetStmt | AssignStmt;
 class StmtAST : public BaseAST {
 public:
-  StmtAST(BaseAST *exp) : exp(exp) {}
+  StmtAST(BaseAST *stmt) : stmt(stmt) {}
+  std::unique_ptr<BaseAST> stmt;
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+};
+
+// RetStmt ::= "return" Exp ";";
+class RetStmtAST : public BaseAST {
+public:
+  RetStmtAST(BaseAST *exp) : exp(exp) {}
+  std::unique_ptr<BaseAST> exp;
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+};
+
+// AssignStmt ::= LVal "=" Exp ";";
+class AssignStmtAST : public BaseAST {
+public:
+  AssignStmtAST(BaseAST *lval, BaseAST *exp) : lval(lval), exp(exp) {}
+  std::unique_ptr<BaseAST> lval;
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
@@ -111,8 +130,7 @@ public:
 // ConstExp ::= Exp;
 class ExpAST : public BaseAST {
 public:
-  ExpAST(BaseAST *exp, bool is_const = false)
-      : is_const(is_const), exp(exp) {}
+  ExpAST(BaseAST *exp, bool is_const = false) : is_const(is_const), exp(exp) {}
   bool is_const;
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
@@ -135,6 +153,7 @@ public:
   std::unique_ptr<std::string> ident;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  bool is_const(SymbolTable *stb) const;
 };
 
 // Number ::= INT_CONST;

@@ -5,13 +5,19 @@ FuncType      ::= "int";
 
 Block         ::= "{" {BlockItem} "}";
 BlockItem     ::= Decl | Stmt;
-Stmt          ::= "return" Exp ";";
 
-Decl          ::= ConstDecl;
+RetStmt       ::= "return" Exp ";";
+AssignStmt    ::= LVal "=" Exp ";"
+Stmt          ::= RetStmt | AssignStmt
+
+Decl          ::= ConstDecl | VarDecl;
 ConstDecl     ::= "const" BType ConstDef {"," ConstDef} ";";
 BType         ::= "int";
 ConstDef      ::= IDENT "=" ConstInitVal;
 ConstInitVal  ::= ConstExp;
+VarDecl       ::= BType VarDef {"," VarDef} ";";
+VarDef        ::= IDENT | IDENT "=" InitVal;
+InitVal       ::= Exp;
 
 Exp           ::= EqExp;
 ConstExp      ::= Exp;

@@ -31,10 +31,10 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 
 %type <ast_val> FuncDef
 %type <char_val> FuncType BType
-%type <list_val> BlockItemList ConstDefList
-%type <ast_val> Block Stmt
+%type <list_val> BlockItemList VarDefList ConstDefList
+%type <ast_val> Block Stmt RetStmt AssignStmt
 %type <ast_val> BlockItem
-%type <ast_val> Decl ConstDecl ConstDef ConstInitVal
+%type <ast_val> Decl VarDecl VarDef InitVal ConstDecl ConstDef ConstInitVal
 %type <ast_val> Exp ConstExp Number LVal
 %type <ast_val> PrimaryExp UnaryExp MulExp AddExp RelExp EqExp
 
@@ -71,7 +71,33 @@ BlockItemList
   }
   ;
 
-Decl : ConstDecl { $$ = $1; } ;
+Decl
+  : VarDecl { $$ = $1; }
+  | ConstDecl { $$ = $1; }
+  ;
+
+VarDecl : BType VarDefList ';' { $$ = new DeclAST($1, $2); }
+
+VarDef
+  : IDENT {
+    $$ = new DefAST($1);
+  }
+  | IDENT '=' InitVal {
+    $$ = new DefAST($1, $3);
+  }
+  ;
+
+VarDefList
+  : VarDef {
+    auto def_l = new std::vector<std::unique_ptr<BaseAST>>;
+    def_l->emplace_back($1);
+    $$ = def_l;
+  }
+  | VarDefList ',' VarDef {
+    $1->emplace_back($3);
+    $$ = $1;
+  }
+  ;
 
 ConstDecl : CONST BType ConstDefList ';' { $$ = new DeclAST($2, $3, true); } ;
 
@@ -89,9 +115,18 @@ ConstDefList
   }
   ;
 
+InitVal : Exp { $$ = new InitValAST($1); } ;
+
 ConstInitVal : ConstExp { $$ = new InitValAST($1, true); } ;
 
-Stmt : RETURN Exp ';' { $$ = new StmtAST($2); } ;
+Stmt
+  : RetStmt { $$ = new StmtAST($1); }
+  | AssignStmt { $$ = new StmtAST($1); }
+  ;
+
+RetStmt : RETURN Exp ';' { $$ = new RetStmtAST($2); } ;
+
+AssignStmt : LVal '=' Exp ';' { $$ = new AssignStmtAST($1, $3); } ;
 
 Exp : EqExp { $$ = new ExpAST($1); } ;
 

@@ -61,12 +61,13 @@ Block : '{' BlockItemList '}' { $$ = new BlockAST($2); } ;
 
 BlockItem
   : Decl { $$ = new BlockItemAST($1); }
-  | Stmt { $$ = new BlockItemAST($1); } ;
+  | Stmt { $$ = $1 ? (new BlockItemAST($1)) : nullptr; } ;
 
 BlockItemList
   : { $$ = new std::vector<std::unique_ptr<BaseAST>>; }
   | BlockItemList BlockItem {
-    $1->emplace_back($2);
+    if ($2)
+      $1->emplace_back($2);
     $$ = $1;
   }
   ;
@@ -120,7 +121,8 @@ InitVal : Exp { $$ = new InitValAST($1); } ;
 ConstInitVal : ConstExp { $$ = new InitValAST($1, true); } ;
 
 Stmt
-  : RetStmt { $$ = new StmtAST($1); }
+  : ';' { $$ = nullptr; }
+  | RetStmt { $$ = new StmtAST($1); }
   | AssignStmt { $$ = new StmtAST($1); }
   ;
 

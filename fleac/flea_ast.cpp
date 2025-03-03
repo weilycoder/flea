@@ -73,6 +73,8 @@ void InitValAST::print(std::ostream &out) const { exp->print(out); }
 
 void StmtAST::print(std::ostream &out) const { stmt->print(out); }
 
+void ExpStmtAST::print(std::ostream &out) const { exp->print(out), out << ";"; }
+
 void RetStmtAST::print(std::ostream &out) const {
   out << "return ";
   exp->print(out);
@@ -168,6 +170,10 @@ int64_t InitValAST::const_eval(SymbolTable *stb, bool force) {
 
 int64_t StmtAST::const_eval(SymbolTable *stb, bool force) {
   return stmt->const_eval(stb, force);
+}
+
+int64_t ExpStmtAST::const_eval(SymbolTable *stb, bool force) {
+  return exp->const_eval(stb, force), INT64_MAX;
 }
 
 int64_t AssignStmtAST::const_eval(SymbolTable *stb, bool force) {

@@ -107,6 +107,15 @@ public:
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
 
+// ExpStmt ::= Exp ";";
+class ExpStmtAST : public BaseAST {
+public:
+  ExpStmtAST(BaseAST *exp) : exp(exp) {}
+  std::unique_ptr<BaseAST> exp;
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+};
+
 // RetStmt ::= "return" Exp ";";
 class RetStmtAST : public BaseAST {
 public:

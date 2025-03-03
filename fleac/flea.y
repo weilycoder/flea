@@ -32,7 +32,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 %type <ast_val> FuncDef
 %type <char_val> FuncType BType
 %type <list_val> BlockItemList VarDefList ConstDefList
-%type <ast_val> Block Stmt RetStmt AssignStmt
+%type <ast_val> Block Stmt ExpStmt RetStmt AssignStmt
 %type <ast_val> BlockItem
 %type <ast_val> Decl VarDecl VarDef InitVal ConstDecl ConstDef ConstInitVal
 %type <ast_val> Exp ConstExp Number LVal
@@ -122,11 +122,15 @@ ConstInitVal : ConstExp { $$ = new InitValAST($1, true); } ;
 
 Stmt
   : ';' { $$ = nullptr; }
+  | Block { $$ = new StmtAST($1); }
+  | ExpStmt { $$ = new StmtAST($1); }
   | RetStmt { $$ = new StmtAST($1); }
   | AssignStmt { $$ = new StmtAST($1); }
   ;
 
 RetStmt : RETURN Exp ';' { $$ = new RetStmtAST($2); } ;
+
+ExpStmt : Exp ';' { $$ = new ExpStmtAST($1); } ;
 
 AssignStmt : LVal '=' Exp ';' { $$ = new AssignStmtAST($1, $3); } ;
 

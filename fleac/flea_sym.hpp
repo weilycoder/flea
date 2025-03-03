@@ -17,7 +17,8 @@ protected:
   std::unordered_map<std::string, Value> table;
 
 public:
-  SymbolTable(const SymbolTable *parent = nullptr) : parent(parent) {}
+  SymbolTable(const SymbolTable *parent = nullptr)
+      : offset(parent ? parent->offset : 0), parent(parent) {}
   void insert(const std::string &name, const Value &val) {
     if (table.find(name) != table.end())
       throw redefinition_error(name);
@@ -25,7 +26,7 @@ public:
   }
   void clear() { table.clear(); }
   void insertConst(const std::string &name, int32_t val) { insert(name, val); }
-  void insertVar(const std::string &name) { insert(name, ++offset); }
+  void insertVar(const std::string &name) { insert(name, offset++); }
   const Value &lookup(const std::string &name) const {
     auto it = table.find(name);
     if (it != table.end())

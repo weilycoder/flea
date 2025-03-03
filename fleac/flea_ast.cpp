@@ -138,8 +138,9 @@ int64_t FuncDefAST::const_eval(SymbolTable *stb, bool force) {
 }
 
 int64_t BlockAST::const_eval(SymbolTable *stb, bool force) {
+  SymbolTable new_stb(stb);
   for (const auto &item : *item_l)
-    item->const_eval(stb, force);
+    item->const_eval(&new_stb, force);
   return INT64_MAX;
 }
 

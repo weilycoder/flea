@@ -11,7 +11,11 @@
 #include "flea_ast.hpp"
 #include "flea.tab.hpp"
 
+void yyerror(const char *msg, int yylineno);
+
 %}
+
+%start IN_COMMENT
 
 WhiteSpace    [ \t\n\r]*
 LineComment   "//".*
@@ -24,30 +28,36 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 %%
 
-"\n"            { ++yylineno; }
+"/*"                  { BEGIN(IN_COMMENT); }
+<IN_COMMENT>"*/"      { BEGIN(INITIAL); }
+<IN_COMMENT>"\n"      { ++yylineno; }
+<IN_COMMENT>.         {}
+<IN_COMMENT><<EOF>>   { yyerror("Unclosed block comment", yylineno); exit(1); }
 
-{WhiteSpace}    { /* ignore */ }
-{LineComment}   { /* ignore */ }
+"\n"                  { ++yylineno; }
 
-"int"           { return INT; }
-"const"         { return CONST; }
-"return"        { return RETURN; }
-"if"            { return IF; }
-"else"          { return ELSE; }
+{WhiteSpace}          { /* ignore */ }
+{LineComment}         { /* ignore */ }
 
-{Identifier}    { yylval.str_val = new std::string(yytext); return IDENT; }
+"int"                 { return INT; }
+"const"               { return CONST; }
+"return"              { return RETURN; }
+"if"                  { return IF; }
+"else"                { return ELSE; }
 
-{Decimal}       { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
-{Octal}         { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
-{Hexadecimal}   { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
+{Identifier}          { yylval.str_val = new std::string(yytext); return IDENT; }
 
-"<"             { return LT; }
-">"             { return GT; }
-"<="            { return LE; }
-">="            { return GE; }
-"=="            { return EQ; }
-"!="            { return NE; }
+{Decimal}             { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
+{Octal}               { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
+{Hexadecimal}         { yylval.int_val = (int32_t)strtol(yytext, nullptr, 0); return INT_CONST; }
 
-.               { return yytext[0]; }
+"<"                   { return LT; }
+">"                   { return GT; }
+"<="                  { return LE; }
+">="                  { return GE; }
+"=="                  { return EQ; }
+"!="                  { return NE; }
+
+.                     { return yytext[0]; }
 
 %%

@@ -5,10 +5,17 @@ FuncType      ::= "int";
 
 Block         ::= "{" {BlockItem} "}";
 BlockItem     ::= Decl | Stmt;
-Stmt          ::= LVal "=" Exp ";"
-              | [Exp] ";"
-              | Block
-              | "return" [Exp] ";";
+
+Stmt          ::= OpenStmt | ClosedStmt
+OpenStmt      ::= OpenIf
+ClosedStmt    ::= SimpleStmt | ClosedIf
+OpenIf        ::= "if" "(" Exp ")" Stmt
+                | "if" "(" Exp ")" ClosedStmt "else" OpenStmt
+ClosedIf      ::= "if" "(" Exp ")" ClosedStmt "else" ClosedStmt
+SimpleStmt    ::= LVal "=" Exp ";"
+                | [Exp] ";"
+                | Block
+                | "return" [Exp] ";";
 
 Decl          ::= ConstDecl | VarDecl;
 ConstDecl     ::= "const" BType ConstDef {"," ConstDef} ";";

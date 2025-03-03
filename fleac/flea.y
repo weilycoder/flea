@@ -25,14 +25,17 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
   std::vector<std::unique_ptr<BaseAST>> *list_val;
 }
 
-%token INT CONST RETURN LT GT LE GE EQ NE
+%token INT CONST RETURN IF ELSE LT GT LE GE EQ NE
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
 %type <ast_val> FuncDef
 %type <char_val> FuncType BType
 %type <list_val> BlockItemList VarDefList ConstDefList
-%type <ast_val> Block Stmt ExpStmt RetStmt AssignStmt
+%type <ast_val> Block Stmt
+%type <ast_val> ExpStmt RetStmt AssignStmt
+%type <ast_val> OpenStmt ClosedStmt SimpleStmt
+%type <ast_val> OpenIf ClosedIf
 %type <ast_val> BlockItem
 %type <ast_val> Decl VarDecl VarDef InitVal ConstDecl ConstDef ConstInitVal
 %type <ast_val> Exp ConstExp Number LVal
@@ -66,8 +69,7 @@ BlockItem
 BlockItemList
   : { $$ = new std::vector<std::unique_ptr<BaseAST>>; }
   | BlockItemList BlockItem {
-    if ($2)
-      $1->emplace_back($2);
+    if ($2) $1->emplace_back($2);
     $$ = $1;
   }
   ;
@@ -121,6 +123,33 @@ InitVal : Exp { $$ = new InitValAST($1); } ;
 ConstInitVal : ConstExp { $$ = new InitValAST($1, true); } ;
 
 Stmt
+  : OpenStmt { $$ = $1; }
+  | ClosedStmt { $$ = $1; }
+  ;
+
+OpenStmt : OpenIf { $$ = $1; } ;
+
+ClosedStmt
+  : SimpleStmt { $$ = $1; }
+  | ClosedIf { $$ = $1; }
+  ;
+
+OpenIf
+  : IF '(' Exp ')' Stmt {
+    $$ = new IfStmtAST($3, $5);
+  }
+  | IF '(' Exp ')' ClosedStmt ELSE OpenStmt {
+    $$ = new IfStmtAST($3, $5, $7);
+  }
+  ;
+
+ClosedIf
+  : IF '(' Exp ')' ClosedStmt ELSE ClosedStmt {
+    $$ = new IfStmtAST($3, $5, $7);
+  }
+  ;
+
+SimpleStmt
   : ';' { $$ = nullptr; }
   | Block { $$ = $1; }
   | ExpStmt { $$ = $1; }
@@ -185,7 +214,5 @@ EqExp
 %%
 
 void yyerror(std::unique_ptr<BaseAST> &ast, const char *s) {
-  if (ast)
-    std::cerr << *ast << std::endl;
   std::cerr << "error: " << s << std::endl;
 }

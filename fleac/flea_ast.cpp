@@ -88,6 +88,20 @@ void AssignStmtAST::print(std::ostream &out) const {
   out << ";";
 }
 
+void IfStmtAST::print(std::ostream &out) const {
+  out << "if (";
+  cond->print(out);
+  out << ") ";
+  if (then_stmt)
+    then_stmt->print(out);
+  else
+    out << ";";
+  if (else_stmt) {
+    out << " else ";
+    else_stmt->print(out);
+  }
+}
+
 void ExpAST::print(std::ostream &out) const { exp->print(out); }
 
 void PrimaryExpAST::print(std::ostream &out) const {
@@ -185,6 +199,15 @@ int64_t AssignStmtAST::const_eval(SymbolTable *stb, bool force) {
   if (lval->is_const(stb))
     throw flea_compiler_error("cannot assign to const");
   fold_const(exp, stb, force);
+  return INT64_MAX;
+}
+
+int64_t IfStmtAST::const_eval(SymbolTable *stb, bool force) {
+  fold_const(cond, stb, force);
+  if (then_stmt)
+    then_stmt->const_eval(stb, force);
+  if (else_stmt)
+    else_stmt->const_eval(stb, force);
   return INT64_MAX;
 }
 

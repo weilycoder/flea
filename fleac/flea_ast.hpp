@@ -134,6 +134,17 @@ public:
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
 
+class IfStmtAST : public BaseAST {
+public:
+  IfStmtAST(BaseAST *cond, BaseAST *then_stmt, BaseAST *else_stmt = nullptr)
+      : cond(cond), then_stmt(then_stmt), else_stmt(else_stmt) {}
+  std::unique_ptr<BaseAST> cond;
+  std::unique_ptr<BaseAST> then_stmt;
+  std::unique_ptr<BaseAST> else_stmt;
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+};
+
 // Exp ::= EqExp;
 // ConstExp ::= Exp;
 class ExpAST : public BaseAST {

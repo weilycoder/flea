@@ -27,12 +27,14 @@ int main(int argc, const char *argv[]) {
   unique_ptr<BaseAST> ast;
   int ret = yyparse(ast);
   if (ret != 0)
-    return ret;
+    return fclose(yyin), ret;
 
   cout << *ast << endl;
 
   // semanticAnalysis
   ast->const_eval(nullptr);
   cout << *ast << endl;
+
+  fclose(yyin);
   return 0;
 }

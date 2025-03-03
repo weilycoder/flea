@@ -180,8 +180,8 @@ Number : INT_CONST { $$ = new NumberAST($1); } ;
 
 PrimaryExp
   : '(' Exp ')' { $$ = new PrimaryExpAST($2); }
-  | LVal { $$ = new PrimaryExpAST($1); }
-  | Number { $$ = new PrimaryExpAST($1); }
+  | LVal { $$ = $1; }
+  | Number { $$ = $1; }
   ;
 
 UnaryExp

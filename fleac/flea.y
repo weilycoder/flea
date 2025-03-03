@@ -41,6 +41,10 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
 %type <ast_val> Exp ConstExp Number LVal
 %type <ast_val> PrimaryExp UnaryExp MulExp AddExp RelExp EqExp
 
+%destructor { delete $$; } <str_val>
+%destructor { delete $$; } <ast_val>
+%destructor { delete $$; } <list_val>
+
 %%
 
 CompUnit

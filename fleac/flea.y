@@ -60,8 +60,8 @@ FuncType : INT { $$ = (char)1; } ;
 Block : '{' BlockItemList '}' { $$ = new BlockAST($2); } ;
 
 BlockItem
-  : Decl { $$ = new BlockItemAST($1); }
-  | Stmt { $$ = $1 ? (new BlockItemAST($1)) : nullptr; } ;
+  : Decl { $$ = $1; }
+  | Stmt { $$ = $1; } ;
 
 BlockItemList
   : { $$ = new std::vector<std::unique_ptr<BaseAST>>; }
@@ -122,10 +122,10 @@ ConstInitVal : ConstExp { $$ = new InitValAST($1, true); } ;
 
 Stmt
   : ';' { $$ = nullptr; }
-  | Block { $$ = new StmtAST($1); }
-  | ExpStmt { $$ = new StmtAST($1); }
-  | RetStmt { $$ = new StmtAST($1); }
-  | AssignStmt { $$ = new StmtAST($1); }
+  | Block { $$ = $1; }
+  | ExpStmt { $$ = $1; }
+  | RetStmt { $$ = $1; }
+  | AssignStmt { $$ = $1; }
   ;
 
 RetStmt : RETURN Exp ';' { $$ = new RetStmtAST($2); } ;

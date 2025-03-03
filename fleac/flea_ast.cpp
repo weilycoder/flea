@@ -48,7 +48,7 @@ void BlockAST::print(std::ostream &out) const {
   out << "}";
 }
 
-void BlockItemAST::print(std::ostream &out) const { item->print(out); }
+// void BlockItemAST::print(std::ostream &out) const { item->print(out); }
 
 void DeclAST::print(std::ostream &out) const {
   if (is_const)
@@ -71,7 +71,7 @@ void DefAST::print(std::ostream &out) const {
 
 void InitValAST::print(std::ostream &out) const { exp->print(out); }
 
-void StmtAST::print(std::ostream &out) const { stmt->print(out); }
+// void StmtAST::print(std::ostream &out) const { stmt->print(out); }
 
 void ExpStmtAST::print(std::ostream &out) const { exp->print(out), out << ";"; }
 
@@ -144,9 +144,9 @@ int64_t BlockAST::const_eval(SymbolTable *stb, bool force) {
   return INT64_MAX;
 }
 
-int64_t BlockItemAST::const_eval(SymbolTable *stb, bool force) {
-  return item->const_eval(stb, force);
-}
+// int64_t BlockItemAST::const_eval(SymbolTable *stb, bool force) {
+//   return item->const_eval(stb, force);
+// }
 
 int64_t DeclAST::const_eval(SymbolTable *stb, bool force) {
   for (const auto &def : *def_l)
@@ -169,9 +169,9 @@ int64_t InitValAST::const_eval(SymbolTable *stb, bool force) {
   return fold_const(exp, stb, force | is_const);
 }
 
-int64_t StmtAST::const_eval(SymbolTable *stb, bool force) {
-  return stmt->const_eval(stb, force);
-}
+// int64_t StmtAST::const_eval(SymbolTable *stb, bool force) {
+//   return stmt->const_eval(stb, force);
+// }
 
 int64_t ExpStmtAST::const_eval(SymbolTable *stb, bool force) {
   return exp->const_eval(stb, force), INT64_MAX;

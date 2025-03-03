@@ -49,13 +49,13 @@ public:
 };
 
 // BlockItem ::= Decl | Stmt;
-class BlockItemAST : public BaseAST {
-public:
-  BlockItemAST(BaseAST *item) : item(item) {}
-  std::unique_ptr<BaseAST> item;
-  void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
-};
+// class BlockItemAST : public BaseAST {
+// public:
+//   BlockItemAST(BaseAST *item) : item(item) {}
+//   std::unique_ptr<BaseAST> item;
+//   void print(std::ostream &out) const override final;
+//   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+// };
 
 // BType ::= "int";
 // Decl ::= ConstDecl | VarDecl;
@@ -98,14 +98,13 @@ public:
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };
 
-// Stmt ::= RetStmt | AssignStmt;
-class StmtAST : public BaseAST {
-public:
-  StmtAST(BaseAST *stmt) : stmt(stmt) {}
-  std::unique_ptr<BaseAST> stmt;
-  void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
-};
+// class StmtAST : public BaseAST {
+// public:
+//   StmtAST(BaseAST *stmt) : stmt(stmt) {}
+//   std::unique_ptr<BaseAST> stmt;
+//   void print(std::ostream &out) const override final;
+//   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+// };
 
 // ExpStmt ::= Exp ";";
 class ExpStmtAST : public BaseAST {

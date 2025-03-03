@@ -32,9 +32,7 @@ int main(int argc, const char *argv[]) {
   cout << *ast << endl;
 
   // semanticAnalysis
-  SymbolTable *symtab = new SymbolTable();
-  ast->const_eval(symtab);
-  cout << *symtab;
+  ast->const_eval(nullptr);
   cout << *ast << endl;
-  return delete symtab, 0;
+  return 0;
 }

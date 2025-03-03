@@ -10,8 +10,11 @@
 #include <memory>
 #include <string>
 
+extern int yylineno;
+
 int yylex();
-void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
+void yyerror(const char *msg, int yylineno);
+void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 
 %}
 
@@ -217,6 +220,10 @@ EqExp
 
 %%
 
-void yyerror(std::unique_ptr<BaseAST> &ast, const char *s) {
-  std::cerr << "error: " << s << std::endl;
+void yyerror(const char *msg, int lineno) {
+  std::cerr << "Error at line " << lineno << ": " << msg << std::endl;
+}
+
+void yyerror([[maybe_unused]] std::unique_ptr<BaseAST> &ast, const char *msg) {
+  yyerror(msg, yylineno);
 }

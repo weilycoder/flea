@@ -35,7 +35,10 @@ static constexpr std::string id2op(char id) {
 
 // print functions
 
-void CompUnitAST::print(std::ostream &out) const { func_def->print(out); }
+void CompUnitAST::print(std::ostream &out) const {
+  for (const auto &func_def : func_def_l)
+    func_def->print(out), out << '\n';
+}
 
 void FuncDefAST::print(std::ostream &out) const {
   out << id2tp(func_type_id) << ' ' << *ident << "() ";
@@ -164,7 +167,11 @@ int64_t fold_const(std::unique_ptr<BaseAST> &ast, SymbolTable *stb,
 }
 
 int64_t CompUnitAST::const_eval(SymbolTable *stb, uint32_t context) {
-  return func_def->const_eval(stb, context);
+  for (const auto &func_def : func_def_l) {
+    SymbolTable new_stb(stb);
+    func_def->const_eval(&new_stb, context);
+  }
+  return INT64_MAX;
 }
 
 int64_t FuncDefAST::const_eval(SymbolTable *stb, uint32_t context) {

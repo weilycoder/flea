@@ -20,8 +20,10 @@ public:
 // CompUnit ::= FuncDef;
 class CompUnitAST : public BaseAST {
 public:
-  CompUnitAST(BaseAST *func_def) : func_def(func_def) {}
-  std::unique_ptr<BaseAST> func_def;
+  // CompUnitAST(BaseAST *func_def) : func_def(func_def) {}
+  // std::unique_ptr<BaseAST> func_def;
+  CompUnitAST() {}
+  std::vector<std::unique_ptr<BaseAST>> func_def_l;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };

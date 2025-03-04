@@ -15,11 +15,11 @@ extern int yylineno;
 
 int yylex();
 void yyerror(const char *msg, int yylineno);
-void yyerror(std::unique_ptr<CompUnitAST> &ast, const char *msg);
+void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 
 %}
 
-%parse-param { std::unique_ptr<CompUnitAST> &ast }
+%parse-param { std::unique_ptr<BaseAST> &ast }
 
 %union {
   char char_val;
@@ -55,7 +55,7 @@ void yyerror(std::unique_ptr<CompUnitAST> &ast, const char *msg);
 CompUnit
   : { ast = std::make_unique<CompUnitAST>(); }
   | CompUnit FuncDef {
-    ast->insertFunc($2);
+    dynamic_cast<CompUnitAST *>(ast.get())->insertFunc($2);
   }
   ;
 
@@ -240,6 +240,6 @@ void yyerror(const char *msg, int lineno) {
   std::cerr << "Error at line " << lineno << ": " << msg << std::endl;
 }
 
-void yyerror([[maybe_unused]] std::unique_ptr<CompUnitAST> &ast, const char *msg) {
+void yyerror([[maybe_unused]] std::unique_ptr<BaseAST> &ast, const char *msg) {
   yyerror(msg, yylineno);
 }

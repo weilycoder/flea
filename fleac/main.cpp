@@ -9,7 +9,7 @@
 using namespace std;
 
 extern FILE *yyin;
-extern int yyparse(unique_ptr<CompUnitAST> &ast);
+extern int yyparse(unique_ptr<BaseAST> &ast);
 
 int main(int argc, const char *argv[]) {
   if (argc != 2) {
@@ -24,7 +24,7 @@ int main(int argc, const char *argv[]) {
     return 1;
   }
 
-  unique_ptr<CompUnitAST> ast;
+  unique_ptr<BaseAST> ast;
   int ret = yyparse(ast);
   if (ret != 0)
     return fclose(yyin), ret;

@@ -124,6 +124,20 @@ public:
   int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
+class BreakStmtAST : public BaseAST {
+public:
+  BreakStmtAST() {}
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
+};
+
+class ContinueStmtAST : public BaseAST {
+public:
+  ContinueStmtAST() {}
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
+};
+
 // AssignStmt ::= LVal "=" Exp ";";
 class AssignStmtAST : public BaseAST {
 public:

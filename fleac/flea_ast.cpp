@@ -82,6 +82,10 @@ void RetStmtAST::print(std::ostream &out) const {
   out << ";";
 }
 
+void BreakStmtAST::print(std::ostream &out) const { out << "break;"; }
+
+void ContinueStmtAST::print(std::ostream &out) const { out << "continue;"; }
+
 void AssignStmtAST::print(std::ostream &out) const {
   lval->print(out);
   out << " = ";
@@ -144,7 +148,9 @@ std::ostream &operator<<(std::ostream &out, const BaseAST &ast) {
 // const_eval functions
 
 inline bool check_force(uint32_t context) { return context & 1; }
-inline uint32_t set_force(uint32_t context) { return context | 1; }
+inline uint32_t &set_force(uint32_t &context) { return context |= 1; }
+inline bool check_loop(uint32_t context) { return context & 2; }
+inline uint32_t &set_loop(uint32_t &context) { return context |= 2; }
 
 int64_t fold_const(std::unique_ptr<BaseAST> &ast, SymbolTable *stb,
                    uint32_t context) {
@@ -178,7 +184,7 @@ int64_t BlockAST::const_eval(SymbolTable *stb, uint32_t context) {
 
 int64_t DeclAST::const_eval(SymbolTable *stb, uint32_t context) {
   if (is_const)
-    context = set_force(context);
+    set_force(context);
   for (const auto &def : *def_l)
     def->const_eval(stb, context);
   return INT64_MAX;
@@ -196,7 +202,9 @@ int64_t DefAST::const_eval(SymbolTable *stb, uint32_t context) {
 }
 
 int64_t InitValAST::const_eval(SymbolTable *stb, uint32_t context) {
-  return fold_const(exp, stb, is_const ? set_force(context) : context);
+  if (is_const)
+    set_force(context);
+  return fold_const(exp, stb, context);
 }
 
 // int64_t StmtAST::const_eval(SymbolTable *stb, bool force) {
@@ -228,6 +236,7 @@ int64_t IfStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
 }
 
 int64_t WhileStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
+  set_loop(context);
   fold_const(cond, stb, context);
   if (stmt)
     stmt->const_eval(stb, context);
@@ -238,8 +247,24 @@ int64_t RetStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
   return fold_const(exp, stb, context), INT64_MAX;
 }
 
+int64_t BreakStmtAST::const_eval([[maybe_unused]] SymbolTable *stb,
+                                 uint32_t context) {
+  if (!check_loop(context))
+    throw flea_compiler_error("break statement not within loop");
+  return INT64_MAX;
+}
+
+int64_t ContinueStmtAST::const_eval([[maybe_unused]] SymbolTable *stb,
+                                    uint32_t context) {
+  if (!check_loop(context))
+    throw flea_compiler_error("continue statement not within loop");
+  return INT64_MAX;
+}
+
 int64_t ExpAST::const_eval(SymbolTable *stb, uint32_t context) {
-  return fold_const(exp, stb, is_const ? set_force(context) : context);
+  if (is_const)
+    set_force(context);
+  return fold_const(exp, stb, context);
 }
 
 int64_t PrimaryExpAST::const_eval(SymbolTable *stb, uint32_t context) {

@@ -17,7 +17,9 @@ ClosedWhile   ::= "while" "(" Exp ")" ClosedStmt
 SimpleStmt    ::= LVal "=" Exp ";"
                 | [Exp] ";"
                 | Block
-                | "return" [Exp] ";";
+                | "break" ";"
+                | "continue" ";"
+                | "return" Exp ";";
 
 Decl          ::= ConstDecl | VarDecl;
 ConstDecl     ::= "const" BType ConstDef {"," ConstDef} ";";

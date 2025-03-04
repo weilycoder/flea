@@ -28,7 +28,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
   std::vector<std::unique_ptr<BaseAST>> *list_val;
 }
 
-%token INT CONST RETURN IF ELSE WHILE LT GT LE GE EQ NE
+%token INT CONST RETURN IF ELSE WHILE BREAK CONTINUE LT GT LE GE EQ NE
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
@@ -36,7 +36,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 %type <char_val> FuncType BType
 %type <list_val> BlockItemList VarDefList ConstDefList
 %type <ast_val> Block Stmt
-%type <ast_val> ExpStmt RetStmt AssignStmt
+%type <ast_val> ExpStmt RetStmt AssignStmt BreakStmt ContinueStmt
 %type <ast_val> OpenStmt ClosedStmt SimpleStmt
 %type <ast_val> OpenIf ClosedIf
 %type <ast_val> OpenWhile ClosedWhile
@@ -170,8 +170,14 @@ SimpleStmt
   | Block { $$ = $1; }
   | ExpStmt { $$ = $1; }
   | RetStmt { $$ = $1; }
+  | BreakStmt { $$ = $1; }
+  | ContinueStmt { $$ = $1; }
   | AssignStmt { $$ = $1; }
   ;
+
+BreakStmt : BREAK ';' { $$ = new BreakStmtAST(); } ;
+
+ContinueStmt : CONTINUE ';' { $$ = new ContinueStmtAST(); } ;
 
 RetStmt : RETURN Exp ';' { $$ = new RetStmtAST($2); } ;
 

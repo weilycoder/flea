@@ -136,11 +136,20 @@ public:
 
 class IfStmtAST : public BaseAST {
 public:
-  IfStmtAST(BaseAST *cond, BaseAST *then_stmt, BaseAST *else_stmt = nullptr)
+  IfStmtAST(BaseAST *cond, BaseAST *then_stmt = nullptr, BaseAST *else_stmt = nullptr)
       : cond(cond), then_stmt(then_stmt), else_stmt(else_stmt) {}
   std::unique_ptr<BaseAST> cond;
   std::unique_ptr<BaseAST> then_stmt;
   std::unique_ptr<BaseAST> else_stmt;
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+};
+
+class WhileStmtAST : public BaseAST {
+public:
+  WhileStmtAST(BaseAST *cond, BaseAST *stmt = nullptr) : cond(cond), stmt(stmt) {}
+  std::unique_ptr<BaseAST> cond;
+  std::unique_ptr<BaseAST> stmt;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, bool force = false) override final;
 };

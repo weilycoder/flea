@@ -7,11 +7,13 @@ Block         ::= "{" {BlockItem} "}";
 BlockItem     ::= Decl | Stmt;
 
 Stmt          ::= OpenStmt | ClosedStmt
-OpenStmt      ::= OpenIf
-ClosedStmt    ::= SimpleStmt | ClosedIf
+OpenStmt      ::= OpenIf | OpenWhile
+ClosedStmt    ::= SimpleStmt | ClosedIf | ClosedWhile
 OpenIf        ::= "if" "(" Exp ")" Stmt
                 | "if" "(" Exp ")" ClosedStmt "else" OpenStmt
 ClosedIf      ::= "if" "(" Exp ")" ClosedStmt "else" ClosedStmt
+OpenWhile     ::= "while" "(" Exp ")" OpenStmt
+ClosedWhile   ::= "while" "(" Exp ")" ClosedStmt
 SimpleStmt    ::= LVal "=" Exp ";"
                 | [Exp] ";"
                 | Block

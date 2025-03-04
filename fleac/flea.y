@@ -28,7 +28,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
   std::vector<std::unique_ptr<BaseAST>> *list_val;
 }
 
-%token INT CONST RETURN IF ELSE LT GT LE GE EQ NE
+%token INT CONST RETURN IF ELSE WHILE LT GT LE GE EQ NE
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
@@ -39,6 +39,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 %type <ast_val> ExpStmt RetStmt AssignStmt
 %type <ast_val> OpenStmt ClosedStmt SimpleStmt
 %type <ast_val> OpenIf ClosedIf
+%type <ast_val> OpenWhile ClosedWhile
 %type <ast_val> BlockItem
 %type <ast_val> Decl VarDecl VarDef InitVal ConstDecl ConstDef ConstInitVal
 %type <ast_val> Exp ConstExp Number LVal
@@ -134,11 +135,15 @@ Stmt
   | ClosedStmt { $$ = $1; }
   ;
 
-OpenStmt : OpenIf { $$ = $1; } ;
+OpenStmt
+  : OpenIf { $$ = $1; }
+  | OpenWhile { $$ = $1; }
+  ;
 
 ClosedStmt
   : SimpleStmt { $$ = $1; }
   | ClosedIf { $$ = $1; }
+  | ClosedWhile { $$ = $1; }
   ;
 
 OpenIf
@@ -155,6 +160,10 @@ ClosedIf
     $$ = new IfStmtAST($3, $5, $7);
   }
   ;
+
+OpenWhile : WHILE '(' Exp ')' OpenStmt { $$ = new WhileStmtAST($3, $5); } ;
+
+ClosedWhile : WHILE '(' Exp ')' ClosedStmt { $$ = new WhileStmtAST($3, $5); } ;
 
 SimpleStmt
   : ';' { $$ = nullptr; }

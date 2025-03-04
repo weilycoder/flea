@@ -102,6 +102,16 @@ void IfStmtAST::print(std::ostream &out) const {
   }
 }
 
+void WhileStmtAST::print(std::ostream &out) const {
+  out << "while (";
+  cond->print(out);
+  out << ") ";
+  if (stmt)
+    stmt->print(out);
+  else
+    out << ";";
+}
+
 void ExpAST::print(std::ostream &out) const { exp->print(out); }
 
 void PrimaryExpAST::print(std::ostream &out) const {
@@ -208,6 +218,13 @@ int64_t IfStmtAST::const_eval(SymbolTable *stb, bool force) {
     then_stmt->const_eval(stb, force);
   if (else_stmt)
     else_stmt->const_eval(stb, force);
+  return INT64_MAX;
+}
+
+int64_t WhileStmtAST::const_eval(SymbolTable *stb, bool force) {
+  fold_const(cond, stb, force);
+  if (stmt)
+    stmt->const_eval(stb, force);
   return INT64_MAX;
 }
 

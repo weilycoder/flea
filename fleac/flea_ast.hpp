@@ -13,7 +13,7 @@ class BaseAST {
 public:
   virtual ~BaseAST() = default;
   virtual void print(std::ostream &out) const = 0;
-  virtual int64_t const_eval(SymbolTable *stb, bool force = false) = 0;
+  virtual int64_t const_eval(SymbolTable *stb, uint32_t context = 0) = 0;
   friend std::ostream &operator<<(std::ostream &out, const BaseAST &ast);
 };
 
@@ -23,7 +23,7 @@ public:
   CompUnitAST(BaseAST *func_def) : func_def(func_def) {}
   std::unique_ptr<BaseAST> func_def;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // FuncType ::= "int";
@@ -36,7 +36,7 @@ public:
   std::unique_ptr<std::string> ident;
   std::unique_ptr<BaseAST> block;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // Block ::= "{" {BlockItem} "}";
@@ -45,7 +45,7 @@ public:
   BlockAST(std::vector<std::unique_ptr<BaseAST>> *item_l) : item_l(item_l) {}
   std::unique_ptr<std::vector<std::unique_ptr<BaseAST>>> item_l;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // BlockItem ::= Decl | Stmt;
@@ -70,7 +70,7 @@ public:
   char type_id;
   std::unique_ptr<std::vector<std::unique_ptr<BaseAST>>> def_l;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // VarDef ::= IDENT "=" InitVal;
@@ -83,7 +83,7 @@ public:
   std::unique_ptr<std::string> ident;
   std::unique_ptr<BaseAST> init_val;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // InitVal ::= Exp;
@@ -95,7 +95,7 @@ public:
   bool is_const;
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // class StmtAST : public BaseAST {
@@ -112,7 +112,7 @@ public:
   ExpStmtAST(BaseAST *exp) : exp(exp) {}
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // RetStmt ::= "return" Exp ";";
@@ -121,7 +121,7 @@ public:
   RetStmtAST(BaseAST *exp) : exp(exp) {}
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // AssignStmt ::= LVal "=" Exp ";";
@@ -131,27 +131,29 @@ public:
   std::unique_ptr<BaseAST> lval;
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 class IfStmtAST : public BaseAST {
 public:
-  IfStmtAST(BaseAST *cond, BaseAST *then_stmt = nullptr, BaseAST *else_stmt = nullptr)
+  IfStmtAST(BaseAST *cond, BaseAST *then_stmt = nullptr,
+            BaseAST *else_stmt = nullptr)
       : cond(cond), then_stmt(then_stmt), else_stmt(else_stmt) {}
   std::unique_ptr<BaseAST> cond;
   std::unique_ptr<BaseAST> then_stmt;
   std::unique_ptr<BaseAST> else_stmt;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 class WhileStmtAST : public BaseAST {
 public:
-  WhileStmtAST(BaseAST *cond, BaseAST *stmt = nullptr) : cond(cond), stmt(stmt) {}
+  WhileStmtAST(BaseAST *cond, BaseAST *stmt = nullptr)
+      : cond(cond), stmt(stmt) {}
   std::unique_ptr<BaseAST> cond;
   std::unique_ptr<BaseAST> stmt;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // Exp ::= EqExp;
@@ -162,7 +164,7 @@ public:
   bool is_const;
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // PrimaryExp ::= "(" Exp ")" | LVal | Number;
@@ -171,7 +173,7 @@ public:
   PrimaryExpAST(BaseAST *exp) : exp(exp) {}
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // LVal ::= IDENT;
@@ -180,7 +182,7 @@ public:
   LValAST(std::string *ident) : ident(ident) {}
   std::unique_ptr<std::string> ident;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
   bool is_const(SymbolTable *stb) const;
 };
 
@@ -190,7 +192,7 @@ public:
   NumberAST(int32_t number) : number(number) {}
   int32_t number;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // UnaryOp ::= "+" | "-" | "!";
@@ -201,7 +203,7 @@ public:
   char unary_op;
   std::unique_ptr<BaseAST> exp;
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 class BinExpAST : public BaseAST {
@@ -215,7 +217,7 @@ public:
 
   BinExpAST(char op, BaseAST *lhs, BaseAST *rhs) : op(op), lhs(lhs), rhs(rhs) {}
   void print(std::ostream &out) const override final;
-  int64_t const_eval(SymbolTable *stb, bool force = false) override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };
 
 // MulExp ::= UnaryExp | (MulExp ("*" | "/" | "%") UnaryExp);

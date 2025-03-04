@@ -31,6 +31,12 @@ public:
       : flea_compiler_error("identifier '" + name + "' is not a constant") {}
 };
 
+class not_func_error : public flea_compiler_error {
+public:
+  not_func_error(const std::string &name)
+      : flea_compiler_error("'" + name + "' is not a function") {}
+};
+
 class arithmetic_error : public flea_compiler_error {
 public:
   arithmetic_error(const std::string &msg) : flea_compiler_error(msg) {}

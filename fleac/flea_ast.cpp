@@ -2,38 +2,14 @@
 #include "flea_expr.hpp"
 #include <cassert>
 
-static constexpr std::string id2tp(char id) {
-  switch (id) {
-  case 0:
-  case 'v':
-    return "void";
-  case 1:
-  case 'i':
-    return "int";
-  default:
-    assert(false);
-    __builtin_unreachable();
-  }
-}
-
-static constexpr std::string id2op(char id) {
-  switch (id) {
-  case 0:
-    return "null";
-  case 'l':
-    return "<=";
-  case 'g':
-    return ">=";
-  case 'e':
-    return "==";
-  case 'n':
-    return "!=";
-  default:
-    return std::string(1, id);
-  }
-}
-
 // print functions
+
+void CompUnitAST::insertFunc(BaseAST *func_def) {
+  auto func_def_ast = dynamic_cast<FuncDefAST *>(func_def);
+  assert(func_def_ast);
+  stb.insertFunc(*func_def_ast->ident, func_def_ast->func_type_id);
+  func_def_l.push_back(std::unique_ptr<BaseAST>(func_def));
+}
 
 void CompUnitAST::print(std::ostream &out) const {
   for (const auto &func_def : func_def_l)

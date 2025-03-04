@@ -1,4 +1,5 @@
 %code requires {
+  #include <cassert>
   #include <memory>
   #include <string>
 }
@@ -54,7 +55,7 @@ void yyerror(std::unique_ptr<CompUnitAST> &ast, const char *msg);
 CompUnit
   : { ast = std::make_unique<CompUnitAST>(); }
   | CompUnit FuncDef {
-    ast->func_def_l.emplace_back($2);
+    ast->insertFunc($2);
   }
   ;
 

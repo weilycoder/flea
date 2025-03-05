@@ -33,9 +33,9 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
-%type <ast_val> FuncDef
+%type <ast_val> FuncDef FuncFParam
 %type <char_val> FuncType BType
-%type <list_val> BlockItemList VarDefList ConstDefList
+%type <list_val> BlockItemList VarDefList ConstDefList FuncFParamList
 %type <ast_val> Block Stmt
 %type <ast_val> ExpStmt RetStmt AssignStmt BreakStmt ContinueStmt
 %type <ast_val> OpenStmt ClosedStmt SimpleStmt
@@ -60,10 +60,25 @@ CompUnit
   ;
 
 FuncDef
-  : FuncType IDENT '(' ')' Block {
-    $$ = new FuncDefAST($1, $2, $5);
+  : FuncType IDENT '(' FuncFParamList ')' Block {
+    $$ = new FuncDefAST($1, $2, $6, $4);
   }
   ;
+
+FuncFParamList
+  : { $$ = new std::vector<std::unique_ptr<BaseAST>>; }
+  | FuncFParam {
+    auto fp_l = new std::vector<std::unique_ptr<BaseAST>>;
+    fp_l->emplace_back($1);
+    $$ = fp_l;
+  }
+  | FuncFParamList ',' FuncFParam {
+    $1->emplace_back($3);
+    $$ = $1;
+  }
+  ;
+
+FuncFParam : BType IDENT { $$ = new FuncFParamAST($1, $2); } ;
 
 BType : INT { $$ = (char)1; } ;
 

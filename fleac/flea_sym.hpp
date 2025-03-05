@@ -30,6 +30,7 @@ public:
   void insert(const std::string &name, const Value &val);
   void insertConst(const std::string &name, int32_t val);
   void insertVar(const std::string &name);
+  void insertVar(const std::string &name, int64_t offset);
   void insertFunc(const std::string &name, const FuncSign &val);
   const Value &lookup(const std::string &name) const;
   FuncSign lookupFunc(const std::string &name) const;

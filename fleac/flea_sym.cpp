@@ -24,6 +24,9 @@ void SymbolTable::insertFunc(const std::string &name, const FuncSign &val) {
   insert(name, val);
 }
 void SymbolTable::insertVar(const std::string &name) { insert(name, offset++); }
+void SymbolTable::insertVar(const std::string &name, int64_t offset) {
+  insert(name, offset);
+}
 const Value &SymbolTable::lookup(const std::string &name) const {
   auto it = table.find(name);
   if (it != table.end())

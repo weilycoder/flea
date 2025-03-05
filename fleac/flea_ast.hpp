@@ -34,11 +34,24 @@ public:
 // FuncDef ::= FuncType IDENT "(" ")" Block;
 class FuncDefAST : public BaseAST {
 public:
-  FuncDefAST(char type_id, std::string *ident, BaseAST *block)
-      : func_type_id(type_id), ident(ident), block(block) {}
+  FuncDefAST(char type_id, std::string *ident, BaseAST *block,
+             std::vector<std::unique_ptr<BaseAST>> *fparam_l)
+      : func_type_id(type_id), ident(ident), block(block), fparam_l(fparam_l) {}
   char func_type_id;
   std::unique_ptr<std::string> ident;
   std::unique_ptr<BaseAST> block;
+  std::unique_ptr<std::vector<std::unique_ptr<BaseAST>>> fparam_l;
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
+};
+
+// FuncFParam ::= BType IDENT;
+class FuncFParamAST : public BaseAST {
+public:
+  FuncFParamAST(char type_id, std::string *ident)
+      : type_id(type_id), ident(ident) {}
+  char type_id;
+  std::unique_ptr<std::string> ident;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, uint32_t context = 0) override final;
 };

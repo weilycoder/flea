@@ -18,8 +18,19 @@ void CompUnitAST::print(std::ostream &out) const {
 }
 
 void FuncDefAST::print(std::ostream &out) const {
-  out << id2tp(func_type_id) << ' ' << *ident << "() ";
+  out << id2tp(func_type_id) << ' ' << *ident;
+  out << "(";
+  for (size_t i = 0; i < fparam_l->size(); ++i) {
+    if (i != 0)
+      out << ", ";
+    (*fparam_l)[i]->print(out);
+  }
+  out << ") ";
   block->print(out);
+}
+
+void FuncFParamAST::print(std::ostream &out) const {
+  out << id2tp(type_id) << ' ' << *ident;
 }
 
 void BlockAST::print(std::ostream &out) const {
@@ -152,7 +163,16 @@ int64_t CompUnitAST::const_eval(SymbolTable *stb, uint32_t context) {
 }
 
 int64_t FuncDefAST::const_eval(SymbolTable *stb, uint32_t context) {
+  uint32_t offset = 0;
+  for (const auto &fparam : *fparam_l)
+    fparam->const_eval(stb, context | (offset++ << 8));
   return block->const_eval(stb, context);
+}
+
+int64_t FuncFParamAST::const_eval(SymbolTable *stb, uint32_t context) {
+  int64_t offset = static_cast<int64_t>(context >> 8) + 1;
+  stb->insertVar(*ident, -offset);
+  return INT64_MAX;
 }
 
 int64_t BlockAST::const_eval(SymbolTable *stb, uint32_t context) {

@@ -16,11 +16,11 @@ public:
   bool operator==(const FuncSign &other) const;
 };
 
-using Value = std::variant<int32_t, uint32_t, FuncSign>;
+using Value = std::variant<int32_t, int64_t, FuncSign>;
 
 class SymbolTable {
 protected:
-  uint32_t offset = 0;
+  int64_t offset = 0;
   const SymbolTable *parent;
   std::unordered_map<std::string, Value> table;
 

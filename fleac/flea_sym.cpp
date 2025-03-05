@@ -53,7 +53,7 @@ std::ostream &operator<<(std::ostream &os, const SymbolTable &symtab) {
     using T = std::decay_t<decltype(arg)>;
     if constexpr (std::is_same_v<T, int32_t>)
       os << "(i32) " << arg;
-    else if constexpr (std::is_same_v<T, uint32_t>)
+    else if constexpr (std::is_same_v<T, int64_t>)
       os << "(var) %" << arg;
     else if constexpr (std::is_same_v<T, FuncSign>) {
       os << "(func) ";

@@ -29,7 +29,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
   std::vector<std::unique_ptr<BaseAST>> *list_val;
 }
 
-%token INT CONST RETURN IF ELSE WHILE BREAK CONTINUE LT GT LE GE EQ NE
+%token INT VOID CONST RETURN IF ELSE WHILE BREAK CONTINUE LT GT LE GE EQ NE
 %token <str_val> IDENT
 %token <int_val> INT_CONST
 
@@ -67,7 +67,10 @@ FuncDef
 
 BType : INT { $$ = (char)1; } ;
 
-FuncType : INT { $$ = (char)1; } ;
+FuncType
+  : INT { $$ = (char)1; }
+  | VOID { $$ = (char)0; }
+  ;
 
 Block : '{' BlockItemList '}' { $$ = new BlockAST($2); } ;
 

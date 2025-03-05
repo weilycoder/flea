@@ -1,7 +1,7 @@
 CompUnit      ::= [CompUnit] FuncDef;
 
 FuncDef       ::= FuncType IDENT "(" ")" Block;
-FuncType      ::= "int";
+FuncType      ::= "void" | "int";
 
 Block         ::= "{" {BlockItem} "}";
 BlockItem     ::= Decl | Stmt;

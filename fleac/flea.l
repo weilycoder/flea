@@ -40,6 +40,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 {LineComment}         { /* ignore */ }
 
 "int"                 { return INT; }
+"void"                { return VOID; }
 "const"               { return CONST; }
 "return"              { return RETURN; }
 "if"                  { return IF; }

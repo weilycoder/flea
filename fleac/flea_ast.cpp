@@ -7,7 +7,8 @@
 void CompUnitAST::insertFunc(BaseAST *func_def) {
   auto func_def_ast = dynamic_cast<FuncDefAST *>(func_def);
   assert(func_def_ast);
-  stb.insertFunc(*func_def_ast->ident, func_def_ast->func_type_id);
+  FuncSign func_sign(func_def_ast->func_type_id, {});
+  stb.insertFunc(*func_def_ast->ident, func_sign);
   func_def_l.push_back(std::unique_ptr<BaseAST>(func_def));
 }
 

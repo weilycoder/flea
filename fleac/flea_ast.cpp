@@ -7,7 +7,13 @@
 void CompUnitAST::insertFunc(BaseAST *func_def) {
   auto func_def_ast = dynamic_cast<FuncDefAST *>(func_def);
   assert(func_def_ast);
-  FuncSign func_sign(func_def_ast->func_type_id, {});
+  std::vector<char> arg_types;
+  for (const auto &fparam : *func_def_ast->fparam_l) {
+    auto fparam_ast = dynamic_cast<FuncFParamAST *>(fparam.get());
+    assert(fparam_ast);
+    arg_types.push_back(fparam_ast->type_id);
+  }
+  FuncSign func_sign(func_def_ast->func_type_id, arg_types);
   stb.insertFunc(*func_def_ast->ident, func_sign);
   func_def_l.push_back(std::unique_ptr<BaseAST>(func_def));
 }
@@ -345,6 +351,13 @@ int64_t CallExpAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (check_force(context))
     throw flea_compiler_error("function call in const expression");
   auto func_sign = stb->lookupFunc(*ident);
+  if (fparam_l->size() != func_sign.argTypes.size())
+    throw flea_compiler_error("function call with wrong number of arguments");
+  for (size_t i = 0; i < fparam_l->size(); ++i) {
+    int64_t val = fold_const((*fparam_l)[i], stb, context);
+    if (get_type(val) != static_cast<uint64_t>(func_sign.argTypes[i]))
+      throw flea_compiler_error("function call with wrong argument type");
+  }
   switch (func_sign.returnType) {
   case static_cast<char>(VOID):
     return VOID_VAR;

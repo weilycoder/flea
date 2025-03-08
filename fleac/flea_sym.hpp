@@ -12,7 +12,7 @@ class FuncSign {
 public:
   char returnType;
   std::vector<char> argTypes;
-  FuncSign(char returnType, std::vector<char> argTypes);
+  FuncSign(char returnType, const std::vector<char> &argTypes);
   bool operator==(const FuncSign &other) const;
 };
 

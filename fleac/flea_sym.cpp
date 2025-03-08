@@ -2,7 +2,7 @@
 #include "flea_err.hpp"
 #include "flea_expr.hpp"
 
-FuncSign::FuncSign(char returnType, std::vector<char> argTypes)
+FuncSign::FuncSign(char returnType, const std::vector<char> &argTypes)
     : returnType(returnType), argTypes(argTypes) {}
 bool FuncSign::operator==(const FuncSign &other) const {
   return returnType == other.returnType && argTypes == other.argTypes;

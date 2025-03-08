@@ -158,10 +158,15 @@ inline bool check_force(uint64_t context) { return context & 1; }
 inline uint64_t &set_force(uint64_t &context) { return context |= 1; }
 inline bool check_loop(uint64_t context) { return context & 2; }
 inline uint64_t &set_loop(uint64_t &context) { return context |= 2; }
-inline uint64_t check_type(uint64_t context) { return (context >> 2) & 3; }
-inline uint64_t set_type(uint64_t &context, uint64_t type) {
+inline uint64_t check_con_type(uint64_t context) { return (context >> 2) & 3; }
+inline uint64_t check_ret_type(uint64_t context) { return (context >> 4) & 3; }
+inline uint64_t set_con_type(uint64_t &context, uint64_t type) {
   assert(type < 4);
   return context = (context & ~static_cast<uint64_t>(3 << 2)) | (type << 2);
+}
+inline uint64_t set_ret_type(uint64_t &context, uint64_t type) {
+  assert(type < 4);
+  return context = (context & ~static_cast<uint64_t>(3 << 4)) | (type << 4);
 }
 
 constexpr int64_t VOID_VAR = INT64_MAX;
@@ -211,6 +216,7 @@ int64_t CompUnitAST::const_eval(SymbolTable *stb, uint64_t context) {
 
 int64_t FuncDefAST::const_eval(SymbolTable *stb, uint64_t context) {
   uint64_t offset = 0;
+  set_ret_type(context, static_cast<uint64_t>(func_type_id));
   for (const auto &fparam : *fparam_l)
     fparam->const_eval(stb, context | (offset++ << 32));
   return block->const_eval(stb, context);
@@ -242,7 +248,7 @@ int64_t DeclAST::const_eval(SymbolTable *stb, uint64_t context) {
 }
 
 int64_t DefAST::const_eval(SymbolTable *stb, uint64_t context) {
-  set_type(context, static_cast<uint64_t>(INT));
+  set_con_type(context, static_cast<uint64_t>(INT));
   if (!stb)
     return VOID_VAR;
   if (is_const)
@@ -259,7 +265,7 @@ int64_t InitValAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (is_const)
     set_force(context);
   int64_t val = fold_const(exp, stb, context);
-  if (get_type(val) != check_type(context))
+  if (get_type(val) != check_con_type(context))
     throw flea_compiler_error("type mismatch in init expression");
   return val;
 }
@@ -301,7 +307,10 @@ int64_t WhileStmtAST::const_eval(SymbolTable *stb, uint64_t context) {
 }
 
 int64_t RetStmtAST::const_eval(SymbolTable *stb, uint64_t context) {
-  return fold_const(exp, stb, context), VOID_VAR;
+  int64_t val = fold_const(exp, stb, context);
+  if (get_type(val) != check_ret_type(context))
+    throw flea_compiler_error("type mismatch in return expression");
+  return VOID_VAR;
 }
 
 int64_t BreakStmtAST::const_eval([[maybe_unused]] SymbolTable *stb,

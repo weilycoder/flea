@@ -21,7 +21,7 @@ SimpleStmt    ::= LVal "=" Exp ";"
                 | Block
                 | "break" ";"
                 | "continue" ";"
-                | "return" Exp ";";
+                | "return" [Exp] ";";
 
 Decl          ::= ConstDecl | VarDecl;
 ConstDecl     ::= "const" BType ConstDef {"," ConstDef} ";";

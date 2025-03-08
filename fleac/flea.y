@@ -22,7 +22,6 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 %parse-param { std::unique_ptr<BaseAST> &ast }
 
 %union {
-  char char_val;
   int32_t int_val;
   std::string *str_val;
   BaseAST *ast_val;
@@ -34,7 +33,6 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 %token <int_val> INT_CONST
 
 %type <ast_val> FuncDef FuncFParam
-%type <char_val> FuncType BType
 %type <list_val> BlockItemList VarDefList ConstDefList FuncFParamsList FuncRParamsList
 %type <ast_val> Block Stmt
 %type <ast_val> ExpStmt RetStmt AssignStmt BreakStmt ContinueStmt
@@ -54,14 +52,20 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 
 CompUnit
   : { ast = std::make_unique<CompUnitAST>(); }
+  | CompUnit Decl {
+    dynamic_cast<CompUnitAST *>(ast.get())->insertDecl($2);
+  }
   | CompUnit FuncDef {
     dynamic_cast<CompUnitAST *>(ast.get())->insertFunc($2);
   }
   ;
 
 FuncDef
-  : FuncType IDENT '(' FuncFParamsList ')' Block {
-    $$ = new FuncDefAST($1, $2, $6, $4);
+  : INT IDENT '(' FuncFParamsList ')' Block {
+    $$ = new FuncDefAST((char)1, $2, $6, $4);
+  }
+  | VOID IDENT '(' FuncFParamsList ')' Block {
+    $$ = new FuncDefAST((char)0, $2, $6, $4);
   }
   ;
 
@@ -78,14 +82,7 @@ FuncFParamsList
   }
   ;
 
-FuncFParam : BType IDENT { $$ = new FuncFParamAST($1, $2); } ;
-
-BType : INT { $$ = (char)1; } ;
-
-FuncType
-  : INT { $$ = (char)1; }
-  | VOID { $$ = (char)0; }
-  ;
+FuncFParam : INT IDENT { $$ = new FuncFParamAST((char)1, $2); } ;
 
 Block : '{' BlockItemList '}' { $$ = new BlockAST($2); } ;
 
@@ -106,7 +103,7 @@ Decl
   | ConstDecl { $$ = $1; }
   ;
 
-VarDecl : BType VarDefList ';' { $$ = new DeclAST($1, $2); }
+VarDecl : INT VarDefList ';' { $$ = new DeclAST((char)1, $2); }
 
 VarDef
   : IDENT {
@@ -129,7 +126,7 @@ VarDefList
   }
   ;
 
-ConstDecl : CONST BType ConstDefList ';' { $$ = new DeclAST($2, $3, true); } ;
+ConstDecl : CONST INT ConstDefList ';' { $$ = new DeclAST((char)1, $3, true); } ;
 
 ConstDef : IDENT '=' ConstInitVal { $$ = new DefAST($1, $3, true); } ;
 

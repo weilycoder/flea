@@ -2,7 +2,11 @@
 #include "flea_expr.hpp"
 #include <cassert>
 
-// print functions
+void CompUnitAST::insertDecl(BaseAST *decl) {
+  auto decl_ast = dynamic_cast<DeclAST *>(decl);
+  decl_ast->const_eval(&stb);
+  decl_l.emplace_back(decl);
+}
 
 void CompUnitAST::insertFunc(BaseAST *func_def) {
   auto func_def_ast = dynamic_cast<FuncDefAST *>(func_def);
@@ -15,10 +19,14 @@ void CompUnitAST::insertFunc(BaseAST *func_def) {
   }
   FuncSign func_sign(func_def_ast->func_type_id, arg_types);
   stb.insertFunc(*func_def_ast->ident, func_sign);
-  func_def_l.push_back(std::unique_ptr<BaseAST>(func_def));
+  func_def_l.emplace_back(func_def);
 }
 
+// print functions
+
 void CompUnitAST::print(std::ostream &out) const {
+  for (const auto &decl : decl_l)
+    decl->print(out), out << '\n';
   for (const auto &func_def : func_def_l)
     func_def->print(out), out << '\n';
 }

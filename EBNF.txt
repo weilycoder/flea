@@ -1,4 +1,4 @@
-CompUnit      ::= [CompUnit] FuncDef;
+CompUnit      ::= [CompUnit] (Decl | FuncDef);
 
 FuncDef       ::= FuncType IDENT "(" [FuncFParams] ")" Block;
 FuncType      ::= "void" | "int";

@@ -24,9 +24,10 @@ public:
   // std::unique_ptr<BaseAST> func_def;
   CompUnitAST() {}
   SymbolTable stb;
-  std::vector<std::unique_ptr<BaseAST>> func_def_l;
+  std::vector<std::unique_ptr<BaseAST>> func_def_l, decl_l;
   void print(std::ostream &out) const override final;
   int64_t const_eval(SymbolTable *stb, uint64_t context = 0) override final;
+  void insertDecl(BaseAST *decl);
   void insertFunc(BaseAST *func_def);
 };
 

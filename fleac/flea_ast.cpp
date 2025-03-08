@@ -138,13 +138,13 @@ std::ostream &operator<<(std::ostream &out, const BaseAST &ast) {
 
 // const_eval functions
 
-inline bool check_force(uint32_t context) { return context & 1; }
-inline uint32_t &set_force(uint32_t &context) { return context |= 1; }
-inline bool check_loop(uint32_t context) { return context & 2; }
-inline uint32_t &set_loop(uint32_t &context) { return context |= 2; }
+inline bool check_force(uint64_t context) { return context & 1; }
+inline uint64_t &set_force(uint64_t &context) { return context |= 1; }
+inline bool check_loop(uint64_t context) { return context & 2; }
+inline uint64_t &set_loop(uint64_t &context) { return context |= 2; }
 
 int64_t fold_const(std::unique_ptr<BaseAST> &ast, SymbolTable *stb,
-                   uint32_t context) {
+                   uint64_t context) {
   int64_t val = ast->const_eval(stb, context);
   if (check_force(context))
     assert(val != INT64_MAX);
@@ -154,7 +154,7 @@ int64_t fold_const(std::unique_ptr<BaseAST> &ast, SymbolTable *stb,
   return val;
 }
 
-int64_t CompUnitAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t CompUnitAST::const_eval(SymbolTable *stb, uint64_t context) {
   for (const auto &func_def : func_def_l) {
     SymbolTable new_stb(stb);
     func_def->const_eval(&new_stb, context);
@@ -162,20 +162,20 @@ int64_t CompUnitAST::const_eval(SymbolTable *stb, uint32_t context) {
   return INT64_MAX;
 }
 
-int64_t FuncDefAST::const_eval(SymbolTable *stb, uint32_t context) {
-  uint32_t offset = 0;
+int64_t FuncDefAST::const_eval(SymbolTable *stb, uint64_t context) {
+  uint64_t offset = 0;
   for (const auto &fparam : *fparam_l)
-    fparam->const_eval(stb, context | (offset++ << 8));
+    fparam->const_eval(stb, context | (offset++ << 32));
   return block->const_eval(stb, context);
 }
 
-int64_t FuncFParamAST::const_eval(SymbolTable *stb, uint32_t context) {
-  int64_t offset = static_cast<int64_t>(context >> 8) + 1;
+int64_t FuncFParamAST::const_eval(SymbolTable *stb, uint64_t context) {
+  int64_t offset = static_cast<int64_t>(context >> 32) + 1;
   stb->insertVar(*ident, -offset);
   return INT64_MAX;
 }
 
-int64_t BlockAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t BlockAST::const_eval(SymbolTable *stb, uint64_t context) {
   SymbolTable new_stb(stb);
   for (const auto &item : *item_l)
     item->const_eval(&new_stb, context);
@@ -186,7 +186,7 @@ int64_t BlockAST::const_eval(SymbolTable *stb, uint32_t context) {
 //   return item->const_eval(stb, force);
 // }
 
-int64_t DeclAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t DeclAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (is_const)
     set_force(context);
   for (const auto &def : *def_l)
@@ -194,7 +194,7 @@ int64_t DeclAST::const_eval(SymbolTable *stb, uint32_t context) {
   return INT64_MAX;
 }
 
-int64_t DefAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t DefAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (!stb)
     return INT64_MAX;
   int64_t val = init_val ? fold_const(init_val, stb, context) : INT64_MAX;
@@ -205,7 +205,7 @@ int64_t DefAST::const_eval(SymbolTable *stb, uint32_t context) {
   return INT64_MAX;
 }
 
-int64_t InitValAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t InitValAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (is_const)
     set_force(context);
   return fold_const(exp, stb, context);
@@ -215,11 +215,11 @@ int64_t InitValAST::const_eval(SymbolTable *stb, uint32_t context) {
 //   return stmt->const_eval(stb, force);
 // }
 
-int64_t ExpStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t ExpStmtAST::const_eval(SymbolTable *stb, uint64_t context) {
   return exp->const_eval(stb, context), INT64_MAX;
 }
 
-int64_t AssignStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t AssignStmtAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (!stb)
     return INT64_MAX;
   auto lval = dynamic_cast<LValAST *>(this->lval.get());
@@ -230,7 +230,7 @@ int64_t AssignStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
   return INT64_MAX;
 }
 
-int64_t IfStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t IfStmtAST::const_eval(SymbolTable *stb, uint64_t context) {
   fold_const(cond, stb, context);
   if (then_stmt)
     then_stmt->const_eval(stb, context);
@@ -239,7 +239,7 @@ int64_t IfStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
   return INT64_MAX;
 }
 
-int64_t WhileStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t WhileStmtAST::const_eval(SymbolTable *stb, uint64_t context) {
   set_loop(context);
   fold_const(cond, stb, context);
   if (stmt)
@@ -247,35 +247,35 @@ int64_t WhileStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
   return INT64_MAX;
 }
 
-int64_t RetStmtAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t RetStmtAST::const_eval(SymbolTable *stb, uint64_t context) {
   return fold_const(exp, stb, context), INT64_MAX;
 }
 
 int64_t BreakStmtAST::const_eval([[maybe_unused]] SymbolTable *stb,
-                                 uint32_t context) {
+                                 uint64_t context) {
   if (!check_loop(context))
     throw flea_compiler_error("break statement not within loop");
   return INT64_MAX;
 }
 
 int64_t ContinueStmtAST::const_eval([[maybe_unused]] SymbolTable *stb,
-                                    uint32_t context) {
+                                    uint64_t context) {
   if (!check_loop(context))
     throw flea_compiler_error("continue statement not within loop");
   return INT64_MAX;
 }
 
-int64_t ExpAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t ExpAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (is_const)
     set_force(context);
   return fold_const(exp, stb, context);
 }
 
-int64_t PrimaryExpAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t PrimaryExpAST::const_eval(SymbolTable *stb, uint64_t context) {
   return fold_const(exp, stb, context);
 }
 
-int64_t LValAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t LValAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (!stb)
     return INT64_MAX;
   try {
@@ -288,11 +288,11 @@ int64_t LValAST::const_eval(SymbolTable *stb, uint32_t context) {
 }
 
 int64_t NumberAST::const_eval([[maybe_unused]] SymbolTable *stb,
-                              [[maybe_unused]] uint32_t context) {
+                              [[maybe_unused]] uint64_t context) {
   return number;
 }
 
-int64_t UnaryExpAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t UnaryExpAST::const_eval(SymbolTable *stb, uint64_t context) {
   int64_t val = fold_const(exp, stb, context);
   if (val == INT64_MAX)
     return INT64_MAX;
@@ -310,7 +310,7 @@ int64_t UnaryExpAST::const_eval(SymbolTable *stb, uint32_t context) {
   }
 }
 
-int64_t BinExpAST::const_eval(SymbolTable *stb, uint32_t context) {
+int64_t BinExpAST::const_eval(SymbolTable *stb, uint64_t context) {
   int64_t lhs_val = fold_const(lhs, stb, context);
   if (!rhs)
     return lhs_val;

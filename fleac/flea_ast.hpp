@@ -226,6 +226,18 @@ public:
   int64_t const_eval(SymbolTable *stb, uint64_t context = 0) override final;
 };
 
+// CallExp ::= IDENT "(" [FuncRParams] ")";
+class CallExpAST : public BaseAST {
+public:
+  CallExpAST(std::string *ident,
+             std::vector<std::unique_ptr<BaseAST>> *fparam_l)
+      : ident(ident), fparam_l(fparam_l) {}
+  std::unique_ptr<std::string> ident;
+  std::unique_ptr<std::vector<std::unique_ptr<BaseAST>>> fparam_l;
+  void print(std::ostream &out) const override final;
+  int64_t const_eval(SymbolTable *stb, uint64_t context = 0) override final;
+};
+
 // UnaryOp ::= "+" | "-" | "!";
 // UnaryExp ::= PrimaryExp | UnaryOp UnaryExp;
 class UnaryExpAST : public BaseAST {

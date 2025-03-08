@@ -3,11 +3,9 @@
 
 std::string id2tp(char id) {
   switch (id) {
-  case 0:
-  case 'v':
+  case static_cast<char>(VOID):
     return "void";
-  case 1:
-  case 'i':
+  case static_cast<char>(INT):
     return "int";
   default:
     assert(false);

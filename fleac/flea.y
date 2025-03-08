@@ -35,7 +35,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 
 %type <ast_val> FuncDef FuncFParam
 %type <char_val> FuncType BType
-%type <list_val> BlockItemList VarDefList ConstDefList FuncFParamList
+%type <list_val> BlockItemList VarDefList ConstDefList FuncFParamsList FuncRParamsList
 %type <ast_val> Block Stmt
 %type <ast_val> ExpStmt RetStmt AssignStmt BreakStmt ContinueStmt
 %type <ast_val> OpenStmt ClosedStmt SimpleStmt
@@ -44,7 +44,7 @@ void yyerror(std::unique_ptr<BaseAST> &ast, const char *msg);
 %type <ast_val> BlockItem
 %type <ast_val> Decl VarDecl VarDef InitVal ConstDecl ConstDef ConstInitVal
 %type <ast_val> Exp ConstExp Number LVal
-%type <ast_val> PrimaryExp UnaryExp MulExp AddExp RelExp EqExp
+%type <ast_val> PrimaryExp UnaryExp MulExp AddExp RelExp EqExp CallExp
 
 %destructor { delete $$; } <str_val>
 %destructor { delete $$; } <ast_val>
@@ -60,19 +60,19 @@ CompUnit
   ;
 
 FuncDef
-  : FuncType IDENT '(' FuncFParamList ')' Block {
+  : FuncType IDENT '(' FuncFParamsList ')' Block {
     $$ = new FuncDefAST($1, $2, $6, $4);
   }
   ;
 
-FuncFParamList
+FuncFParamsList
   : { $$ = new std::vector<std::unique_ptr<BaseAST>>; }
   | FuncFParam {
     auto fp_l = new std::vector<std::unique_ptr<BaseAST>>;
     fp_l->emplace_back($1);
     $$ = fp_l;
   }
-  | FuncFParamList ',' FuncFParam {
+  | FuncFParamsList ',' FuncFParam {
     $1->emplace_back($3);
     $$ = $1;
   }
@@ -212,10 +212,26 @@ LVal : IDENT { $$ = new LValAST($1); } ;
 
 Number : INT_CONST { $$ = new NumberAST($1); } ;
 
+CallExp : IDENT '(' FuncRParamsList ')' { $$ = new CallExpAST($1, $3); } ;
+
+FuncRParamsList
+  : { $$ = new std::vector<std::unique_ptr<BaseAST>>; }
+  | Exp {
+    auto fp_l = new std::vector<std::unique_ptr<BaseAST>>;
+    fp_l->emplace_back($1);
+    $$ = fp_l;
+  }
+  | FuncRParamsList ',' Exp {
+    $1->emplace_back($3);
+    $$ = $1;
+  }
+  ;
+
 PrimaryExp
   : '(' Exp ')' { $$ = new PrimaryExpAST($2); }
   | LVal { $$ = $1; }
   | Number { $$ = $1; }
+  | CallExp { $$ = $1; }
   ;
 
 UnaryExp

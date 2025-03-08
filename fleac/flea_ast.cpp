@@ -120,6 +120,16 @@ void LValAST::print(std::ostream &out) const { out << *ident; }
 
 void NumberAST::print(std::ostream &out) const { out << number; }
 
+void CallExpAST::print(std::ostream &out) const {
+  out << *ident << "(";
+  for (size_t i = 0; i < fparam_l->size(); ++i) {
+    if (i != 0)
+      out << ", ";
+    (*fparam_l)[i]->print(out);
+  }
+  out << ")";
+}
+
 void UnaryExpAST::print(std::ostream &out) const {
   if (unary_op)
     out << id2op(unary_op);
@@ -142,6 +152,11 @@ inline bool check_force(uint64_t context) { return context & 1; }
 inline uint64_t &set_force(uint64_t &context) { return context |= 1; }
 inline bool check_loop(uint64_t context) { return context & 2; }
 inline uint64_t &set_loop(uint64_t &context) { return context |= 2; }
+inline uint64_t check_type(uint64_t context) { return (context >> 2) & 3; }
+inline uint64_t set_type(uint64_t &context, uint64_t type) {
+  assert(type < 4);
+  return context = (context & ~static_cast<uint64_t>(3 << 2)) | (type << 2);
+}
 
 constexpr int64_t VOID_VAR = INT64_MAX;
 constexpr int64_t INT_VAR = static_cast<int64_t>(1) << 32;
@@ -158,6 +173,16 @@ inline bool check_const(int64_t val) {
   return val <= INT32_MAX && val >= INT32_MIN;
 }
 
+inline uint64_t get_type(int64_t val) {
+  if (val == VOID_VAR)
+    return VOID;
+  if (val == INT_VAR)
+    return INT;
+  if (val == ARR_VAR)
+    return ARR;
+  return INT;
+}
+
 int64_t fold_const(std::unique_ptr<BaseAST> &ast, SymbolTable *stb,
                    uint64_t context) {
   int64_t val = ast->const_eval(stb, context);
@@ -170,6 +195,7 @@ int64_t fold_const(std::unique_ptr<BaseAST> &ast, SymbolTable *stb,
 }
 
 int64_t CompUnitAST::const_eval(SymbolTable *stb, uint64_t context) {
+  stb = &this->stb;
   for (const auto &func_def : func_def_l) {
     SymbolTable new_stb(stb);
     func_def->const_eval(&new_stb, context);
@@ -210,6 +236,7 @@ int64_t DeclAST::const_eval(SymbolTable *stb, uint64_t context) {
 }
 
 int64_t DefAST::const_eval(SymbolTable *stb, uint64_t context) {
+  set_type(context, static_cast<uint64_t>(INT));
   if (!stb)
     return VOID_VAR;
   if (is_const)
@@ -225,7 +252,10 @@ int64_t DefAST::const_eval(SymbolTable *stb, uint64_t context) {
 int64_t InitValAST::const_eval(SymbolTable *stb, uint64_t context) {
   if (is_const)
     set_force(context);
-  return fold_const(exp, stb, context);
+  int64_t val = fold_const(exp, stb, context);
+  if (get_type(val) != check_type(context))
+    throw flea_compiler_error("type mismatch in init expression");
+  return val;
 }
 
 // int64_t StmtAST::const_eval(SymbolTable *stb, bool force) {
@@ -307,6 +337,22 @@ int64_t LValAST::const_eval(SymbolTable *stb, uint64_t context) {
 int64_t NumberAST::const_eval([[maybe_unused]] SymbolTable *stb,
                               [[maybe_unused]] uint64_t context) {
   return number;
+}
+
+int64_t CallExpAST::const_eval(SymbolTable *stb, uint64_t context) {
+  if (!stb)
+    return INT_VAR;
+  if (check_force(context))
+    throw flea_compiler_error("function call in const expression");
+  auto func_sign = stb->lookupFunc(*ident);
+  switch (func_sign.returnType) {
+  case static_cast<char>(VOID):
+    return VOID_VAR;
+  case static_cast<char>(INT):
+    return INT_VAR;
+  default:
+    return ARR_VAR;
+  }
 }
 
 int64_t UnaryExpAST::const_eval(SymbolTable *stb, uint64_t context) {

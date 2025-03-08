@@ -34,13 +34,15 @@ InitVal       ::= Exp;
 
 Exp           ::= EqExp;
 ConstExp      ::= Exp;
-PrimaryExp    ::= "(" Exp ")" | LVal | Number;
+PrimaryExp    ::= "(" Exp ")" | LVal | Number | CallExp;
 LVal          ::= IDENT;
 Number        ::= INT_CONST;
 UnaryExp      ::= PrimaryExp | UnaryOp UnaryExp;
 UnaryOp       ::= "+" | "-" | "!";
 MulExp        ::= UnaryExp | MulExp ("*" | "/" | "%") UnaryExp;
 AddExp        ::= MulExp | AddExp ("+" | "-") MulExp;
+CallExp       ::= IDENT "(" [FuncRParams] ")"
+FuncRParams   ::= Exp {"," Exp};
 
 RelExp        ::= AddExp | RelExp ("<" | ">" | "<=" | ">=") AddExp;
 EqExp         ::= RelExp | EqExp ("==" | "!=") RelExp;

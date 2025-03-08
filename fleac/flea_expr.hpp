@@ -4,6 +4,10 @@
 #include "flea_err.hpp"
 #include <cstdint>
 
+constexpr uint64_t VOID = 0;
+constexpr uint64_t INT = 1;
+constexpr uint64_t ARR = 2;
+
 std::string id2tp(char id);
 std::string id2op(char id);
 int32_t safe_add(int32_t a, int32_t b);
